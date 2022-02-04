@@ -1,6 +1,6 @@
 package query
 
-type ColumnMode = int8
+type ColumnMode int8
 
 const (
 	NonAmbiguousColumn ColumnMode = iota

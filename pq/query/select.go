@@ -2,6 +2,7 @@ package query
 
 import (
 	"fmt"
+	"github.com/nbs-go/nsql/pq/op"
 	"github.com/nbs-go/nsql/query"
 	"github.com/nbs-go/nsql/schema"
 	"strings"
@@ -9,22 +10,21 @@ import (
 
 func Select() *SelectBuilder {
 	b := SelectBuilder{
-		fields:     []query.SelectFieldWriter{},
-		aliases:    map[string]string{},
-		aliasesRev: map[string]string{},
-		orderBys:   []query.OrderBy{},
+		fields:   []query.SelectFieldWriter{},
+		tables:   map[string]string{},
+		orderBys: []query.OrderBy{},
 	}
 	return &b
 }
 
 type SelectBuilder struct {
-	fields     []query.SelectFieldWriter
-	from       query.FromWriter
-	aliases    map[string]string
-	aliasesRev map[string]string
-	limit      *int
-	skip       *int
-	orderBys   []query.OrderBy
+	fields   []query.SelectFieldWriter
+	from     query.FromWriter
+	where    query.WhereWriter
+	tables   map[string]string // To store registered table information
+	limit    *int
+	skip     *int
+	orderBys []query.OrderBy
 }
 
 func (b *SelectBuilder) Columns(s *schema.Schema, c1 string, cn ...string) *SelectBuilder {
@@ -48,12 +48,18 @@ func (b *SelectBuilder) Columns(s *schema.Schema, c1 string, cn ...string) *Sele
 func (b *SelectBuilder) From(s *schema.Schema, args ...string) *SelectBuilder {
 	w := tableWriter{tableName: s.TableName}
 
+	// If from is being overwritten, then panic
+	if b.from != nil {
+		panic(fmt.Errorf("cannot overwrite existing from"))
+	}
+
 	// If alias is set, then add alias
 	if len(args) > 0 && args[0] != "" {
 		alias := args[0]
-		b.aliases[s.TableName] = alias
-		b.aliasesRev[alias] = s.TableName
+		b.tables[s.TableName] = alias
 		w.SetAlias(alias)
+	} else {
+		b.tables[s.TableName] = ""
 	}
 
 	b.from = &w
@@ -61,14 +67,30 @@ func (b *SelectBuilder) From(s *schema.Schema, args ...string) *SelectBuilder {
 	return b
 }
 
-func (b *SelectBuilder) OrderBy(s *schema.Schema, col string, args ...query.SortDirection) *SelectBuilder {
+func (b *SelectBuilder) Where(w1 query.WhereWriter, wn ...query.WhereWriter) *SelectBuilder {
+	// If wn is not set, then set where filter
+	if len(wn) == 0 {
+		b.where = w1
+		return b
+	}
+
+	// Else, set where with AND logical operators
+	where := append([]query.WhereWriter{w1}, wn...)
+	b.where = &whereLogicalWriter{
+		op:         op.And,
+		conditions: where,
+	}
+	return b
+}
+
+func (b *SelectBuilder) OrderBy(s *schema.Schema, col string, args ...op.SortDirection) *SelectBuilder {
 	// Skip if column is not available
 	if !s.IsColumnExist(col) {
 		return b
 	}
 
 	// Get direction
-	direction := query.Ascending
+	direction := op.Ascending
 	if len(args) > 0 {
 		direction = args[0]
 	}
@@ -96,10 +118,14 @@ func (b *SelectBuilder) Build() string {
 	// Generate select query
 	fQueries := make([]string, len(b.fields))
 	for i, f := range b.fields {
-		if a, ok := b.aliases[f.GetTableName()]; ok {
-			f.SetTableAlias(a)
+		// If selected fields is from table that is already registered
+		if alias, ok := b.tables[f.GetTableName()]; ok {
+			// If alias is set, then set alias
+			if alias != "" {
+				f.SetTableAlias(alias)
+			}
+			fQueries[i] = f.SelectQuery()
 		}
-		fQueries[i] = f.SelectQuery()
 	}
 	selectQuery := strings.Join(fQueries, query.Separator)
 
@@ -109,21 +135,36 @@ func (b *SelectBuilder) Build() string {
 	// Combine query
 	q := fmt.Sprintf("SELECT %s FROM %s", selectQuery, from)
 
+	// Generate where query
+	if b.where != nil {
+		// Set table aliases
+		setAliasOnWhereWriter(b.where, b.tables)
+
+		// Generate query
+		where := b.where.WhereQuery()
+
+		// If not empty, then add
+		if where != "" {
+			q += fmt.Sprintf(` WHERE %s`, where)
+		}
+	}
+
 	// Add order by
 	if count := len(b.orderBys); count > 0 {
 		arr := make([]string, count)
 		for i, v := range b.orderBys {
 			tableName := v.TableName
+
 			// Override table name if aliases is set
-			if a, ok := b.aliases[tableName]; ok {
-				tableName = a
+			if alias, ok := b.tables[tableName]; ok && alias != "" {
+				tableName = alias
 			}
 
 			// Create order by query
 			oq := fmt.Sprintf(`"%s"."%s"`, tableName, v.Column)
 
 			// Add direction for descending
-			if v.Direction == query.Descending {
+			if v.Direction == op.Descending {
 				oq += " DESC"
 			}
 
@@ -145,4 +186,20 @@ func (b *SelectBuilder) Build() string {
 	}
 
 	return q
+}
+
+func setAliasOnWhereWriter(ww query.WhereWriter, aliases map[string]string) {
+	// Switch type
+	switch w := ww.(type) {
+	case query.LogicalWhereWriter:
+		// Get conditions
+		for _, cw := range w.GetConditions() {
+			setAliasOnWhereWriter(cw, aliases)
+		}
+	case query.ComparisonWhereWriter:
+		// Get alias
+		if a, ok := aliases[w.GetTableName()]; ok && a != "" {
+			w.SetTableAlias(a)
+		}
+	}
 }

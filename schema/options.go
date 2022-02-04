@@ -16,7 +16,7 @@ var defaultOptions = &options{
 	modelRef:      nil,
 }
 
-type OptionSetterFn = func(*options)
+type OptionSetterFn func(*options)
 
 func evaluateSchemaOptions(opts []OptionSetterFn) *options {
 	optCopy := &options{}

@@ -1,7 +1,7 @@
 package query
 
 import (
-	"github.com/nbs-go/nsql/query"
+	"github.com/nbs-go/nsql/pq/op"
 	"github.com/nbs-go/nsql/schema"
 	"testing"
 	"time"
@@ -76,7 +76,7 @@ func TestSelectBuilder(t *testing.T) {
 		Select().
 			Columns(person, "*").
 			From(person, "p").
-			OrderBy(person, "createdAt", query.Descending),
+			OrderBy(person, "createdAt", op.Descending),
 		`SELECT "p"."createdAt", "p"."updatedAt", "p"."id", "p"."fullName" FROM "Person" AS "p" ORDER BY "p"."createdAt" DESC`,
 	)
 
@@ -84,7 +84,7 @@ func TestSelectBuilder(t *testing.T) {
 		Select().
 			Columns(person, "*").
 			From(person, "p").
-			OrderBy(person, "createdAt", query.Descending).
+			OrderBy(person, "createdAt", op.Descending).
 			Limit(10).
 			Skip(0),
 		`SELECT "p"."createdAt", "p"."updatedAt", "p"."id", "p"."fullName" FROM "Person" AS "p" ORDER BY "p"."createdAt" DESC LIMIT 10 OFFSET 0`,
@@ -94,8 +94,55 @@ func TestSelectBuilder(t *testing.T) {
 		Select().
 			Columns(person, "*").
 			From(person, "p").
-			OrderBy(person, "age", query.Descending),
+			OrderBy(person, "age", op.Descending),
 		`SELECT "p"."createdAt", "p"."updatedAt", "p"."id", "p"."fullName" FROM "Person" AS "p"`,
+	)
+
+	testSelectBuilder(t, "Select with Where by PK",
+		Select().
+			Columns(person, "*").
+			From(person).
+			Where(Equal(person, person.PrimaryKey)),
+		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person" WHERE "Person"."id" = ?`,
+	)
+
+	testSelectBuilder(t, "Select with Where And",
+		Select().
+			Columns(person, "*").
+			From(person, "p").
+			Where(Equal(person, person.PrimaryKey), Equal(person, "fullName")),
+		`SELECT "p"."createdAt", "p"."updatedAt", "p"."id", "p"."fullName" FROM "Person" AS "p" WHERE "p"."id" = ? AND "p"."fullName" = ?`,
+	)
+
+	testSelectBuilder(t, "Select with Where And Or Nested",
+		Select().
+			Columns(person, "*").
+			From(person, "p").
+			Where(
+				Or(
+					Like(person, "fullName"),
+					NotLike(person, "fullName"),
+					ILike(person, "fullName"),
+					NotILike(person, "fullName"),
+					And(
+						In(person, "id"),
+						NotIn(person, "id"),
+					),
+				),
+				And(
+					Equal(person, "id"),
+					NotEqual(person, "id"),
+					LessThan(person, "id"),
+					LessThanEqual(person, "id"),
+					GreaterThan(person, "id"),
+					GreaterThanEqual(person, "id"),
+					Or(
+						Between(person, "createdAt"),
+						NotBetween(person, "updatedAt"),
+					),
+				),
+			),
+		`SELECT "p"."createdAt", "p"."updatedAt", "p"."id", "p"."fullName" FROM "Person" AS "p" WHERE ("p"."fullName" LIKE ? OR "p"."fullName" NOT LIKE ? OR "p"."fullName" ILIKE ? OR "p"."fullName" NOT ILIKE ? OR ("p"."id" IN (?) AND "p"."id" NOT IN (?))) AND ("p"."id" = ? AND "p"."id" != ? AND "p"."id" < ? AND "p"."id" <= ? AND "p"."id" > ? AND "p"."id" >= ? AND ("p"."createdAt" BETWEEN ? AND ? OR "p"."updatedAt" NOT BETWEEN ? AND ?))`,
 	)
 }
 

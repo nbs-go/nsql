@@ -10,3 +10,16 @@ type SelectFieldWriter interface {
 type FromWriter interface {
 	FromQuery() string
 }
+
+type WhereWriter interface {
+	WhereQuery() string
+}
+
+type ComparisonWhereWriter interface {
+	SetTableAlias(alias string)
+	GetTableName() string
+}
+
+type LogicalWhereWriter interface {
+	GetConditions() []WhereWriter
+}

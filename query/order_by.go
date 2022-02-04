@@ -1,14 +1,9 @@
 package query
 
-type SortDirection = uint8
-
-const (
-	Ascending SortDirection = iota
-	Descending
-)
+import "github.com/nbs-go/nsql/pq/op"
 
 type OrderBy struct {
 	TableName string
 	Column    string
-	Direction SortDirection
+	Direction op.SortDirection
 }

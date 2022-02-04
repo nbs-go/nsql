@@ -1,5 +1,5 @@
 package query
 
-var (
+const (
 	Separator = ", "
 )
