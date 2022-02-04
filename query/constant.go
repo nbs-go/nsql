@@ -1,0 +1,5 @@
+package query
+
+var (
+	Separator = ", "
+)
