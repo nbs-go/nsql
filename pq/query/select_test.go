@@ -2,6 +2,7 @@ package query
 
 import (
 	"github.com/nbs-go/nsql/query/op"
+	opt "github.com/nbs-go/nsql/query/option"
 	"github.com/nbs-go/nsql/schema"
 	"testing"
 	"time"
@@ -143,6 +144,36 @@ func TestSelectBuilder(t *testing.T) {
 				),
 			),
 		`SELECT "p"."createdAt", "p"."updatedAt", "p"."id", "p"."fullName" FROM "Person" AS "p" WHERE ("p"."fullName" LIKE ? OR "p"."fullName" NOT LIKE ? OR "p"."fullName" ILIKE ? OR "p"."fullName" NOT ILIKE ? OR ("p"."id" IN (?) AND "p"."id" NOT IN (?))) AND ("p"."id" = ? AND "p"."id" != ? AND "p"."id" < ? AND "p"."id" <= ? AND "p"."id" > ? AND "p"."id" >= ? AND ("p"."createdAt" BETWEEN ? AND ? OR "p"."updatedAt" NOT BETWEEN ? AND ?))`,
+	)
+}
+
+func TestSelectCount(t *testing.T) {
+	testSelectBuilder(t, "Count All",
+		Select().
+			Count("").
+			From(person),
+		`SELECT COUNT(*) FROM "Person"`,
+	)
+
+	testSelectBuilder(t, "Count by Id",
+		Select().
+			Count("id", opt.Schema(person)).
+			From(person),
+		`SELECT COUNT("Person"."id") FROM "Person"`,
+	)
+
+	testSelectBuilder(t, "Count by Id with Alias Table",
+		Select().
+			Count("id", opt.Schema(person)).
+			From(person, "p"),
+		`SELECT COUNT("p"."id") FROM "Person" AS "p"`,
+	)
+
+	testSelectBuilder(t, "Count by Id with Alias Field",
+		Select().
+			Count("id", opt.Schema(person), opt.As("count")).
+			From(person),
+		`SELECT COUNT("Person"."id") AS "count" FROM "Person"`,
 	)
 }
 
