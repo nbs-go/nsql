@@ -7,14 +7,14 @@ import (
 	"strings"
 )
 
-// columnWriter implement query.SelectFieldWriter to write query for selected field in a schema
-type columnWriter struct {
+// selectColumnWriter implement query.SelectFieldWriter to write query for selected field in a schema
+type selectColumnWriter struct {
 	tableName string
 	columns   []string
 	mode      query.ColumnMode
 }
 
-func (w *columnWriter) SelectQuery() string {
+func (w *selectColumnWriter) SelectQuery() string {
 	// Create query
 	fieldQueries := make([]string, len(w.columns))
 	for i, c := range w.columns {
@@ -34,19 +34,19 @@ func (w *columnWriter) SelectQuery() string {
 	return strings.Join(fieldQueries, query.Separator)
 }
 
-func (w *columnWriter) SetTableAlias(alias string) {
+func (w *selectColumnWriter) SetTableAlias(alias string) {
 	w.tableName = alias
 }
 
-func (w *columnWriter) SetMode(mode query.ColumnMode) {
+func (w *selectColumnWriter) SetMode(mode query.ColumnMode) {
 	w.mode = mode
 }
 
-func (w *columnWriter) GetTableName() string {
+func (w *selectColumnWriter) GetTableName() string {
 	return w.tableName
 }
 
-func newColumnWriter(s *schema.Schema, columns []string) *columnWriter {
+func newColumnWriter(s *schema.Schema, columns []string) *selectColumnWriter {
 	if isAllField(columns) {
 		columns = s.GetColumns()
 	} else {
@@ -59,7 +59,7 @@ func newColumnWriter(s *schema.Schema, columns []string) *columnWriter {
 		}
 	}
 
-	return &columnWriter{
+	return &selectColumnWriter{
 		tableName: s.TableName,
 		columns:   columns,
 	}
