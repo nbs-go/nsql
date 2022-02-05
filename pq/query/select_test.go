@@ -1,7 +1,7 @@
 package query
 
 import (
-	"github.com/nbs-go/nsql/pq/op"
+	"github.com/nbs-go/nsql/query/op"
 	"github.com/nbs-go/nsql/schema"
 	"testing"
 	"time"

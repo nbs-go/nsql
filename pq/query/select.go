@@ -2,8 +2,8 @@ package query
 
 import (
 	"fmt"
-	"github.com/nbs-go/nsql/pq/op"
 	"github.com/nbs-go/nsql/query"
+	"github.com/nbs-go/nsql/query/op"
 	"github.com/nbs-go/nsql/schema"
 	"strings"
 )

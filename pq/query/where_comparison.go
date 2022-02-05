@@ -2,7 +2,7 @@ package query
 
 import (
 	"fmt"
-	"github.com/nbs-go/nsql/pq/op"
+	"github.com/nbs-go/nsql/query/op"
 )
 
 type baseWhereComparisonWriter struct {

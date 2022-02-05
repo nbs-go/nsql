@@ -1,6 +1,6 @@
 package query
 
-import "github.com/nbs-go/nsql/pq/op"
+import "github.com/nbs-go/nsql/query/op"
 
 type OrderBy struct {
 	TableName string
