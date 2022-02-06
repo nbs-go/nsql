@@ -6,19 +6,19 @@ import (
 
 type tableWriter struct {
 	tableName string
-	alias     string
+	as        string
+}
+
+func (s *tableWriter) GetTableName() string {
+	return s.tableName
 }
 
 func (s *tableWriter) FromQuery() string {
 	q := fmt.Sprintf(`"%s"`, s.tableName)
 
-	if s.alias != "" {
-		q += fmt.Sprintf(` AS "%s"`, s.alias)
+	if s.as != "" {
+		q += fmt.Sprintf(` AS "%s"`, s.as)
 	}
 
 	return q
-}
-
-func (s *tableWriter) SetAlias(alias string) {
-	s.alias = alias
 }

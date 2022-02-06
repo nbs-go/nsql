@@ -17,108 +17,95 @@ type Person struct {
 
 var person = schema.New(schema.FromModelRef(Person{}))
 
-func TestSelectBuilder(t *testing.T) {
+func TestSelectBasicQuery(t *testing.T) {
 	// Select All
-	testSelectBuilder(t, "Select All",
-		Select().
-			Columns(person, "*").
+	testSelectBuilder(t, "SELECT ALL",
+		Select(opt.Columns("*")).
 			From(person),
 		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person"`,
 	)
 
-	testSelectBuilder(t, "Select Specified Fields",
-		Select().
-			Columns(person, "id", "fullName", "gender").
+	testSelectBuilder(t, "SELECT SPECIFIED FIELDS",
+		Select(opt.Columns("id", "fullName", "gender")).
 			From(person),
 		`SELECT "Person"."id", "Person"."fullName" FROM "Person"`,
 	)
 
-	testSelectBuilder(t, "Select with Alias Table",
-		Select().
-			Columns(person, "*").
-			From(person, "p"),
+	testSelectBuilder(t, "SELECT WITH ALIAS TABLE",
+		Select(opt.Columns("*")).
+			From(person, opt.As("p")),
 		`SELECT "p"."createdAt", "p"."updatedAt", "p"."id", "p"."fullName" FROM "Person" AS "p"`,
 	)
 
-	testSelectBuilder(t, "Select with Limited Result",
-		Select().
-			Columns(person, "*").
+	testSelectBuilder(t, "SELECT WITH LIMITED RESULT",
+		Select(opt.Columns(person, "*")).
 			From(person).
 			Limit(10),
 		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person" LIMIT 10`,
 	)
 
-	testSelectBuilder(t, "Select with Skipped Result",
-		Select().
-			Columns(person, "*").
+	testSelectBuilder(t, "SELECT WITH SKIPPED RESULT",
+		Select(opt.Columns("*")).
 			From(person).
 			Skip(1),
 		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person" OFFSET 1`,
 	)
 
-	testSelectBuilder(t, "Select with Limited and Skipped Result",
-		Select().
-			Columns(person, "*").
+	testSelectBuilder(t, "SELECT WITH LIMITED AND SKIPPED RESULT",
+		Select(opt.Columns("*")).
 			From(person).
 			Limit(10).
 			Skip(10),
 		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person" LIMIT 10 OFFSET 10`,
 	)
 
-	testSelectBuilder(t, "Select with Order By",
-		Select().
-			Columns(person, "*").
+	testSelectBuilder(t, "SELECT WITH ORDER BY",
+		Select(opt.Columns("*")).
 			From(person).
-			OrderBy(person, "createdAt"),
-		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person" ORDER BY "Person"."createdAt"`,
+			OrderBy("createdAt"),
+		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person" ORDER BY "Person"."createdAt" ASC`,
 	)
 
-	testSelectBuilder(t, "Select with Order By Aliased",
-		Select().
-			Columns(person, "*").
-			From(person, "p").
-			OrderBy(person, "createdAt", op.Descending),
+	testSelectBuilder(t, "SELECT WITH ORDER BY WITH ALIAS TABLE",
+		Select(opt.Columns("*")).
+			From(person, opt.As("p")).
+			OrderBy("createdAt", opt.SortDirection(op.Descending), opt.Schema(person)),
 		`SELECT "p"."createdAt", "p"."updatedAt", "p"."id", "p"."fullName" FROM "Person" AS "p" ORDER BY "p"."createdAt" DESC`,
 	)
 
-	testSelectBuilder(t, "Select with Order By, Limit and Skip",
-		Select().
-			Columns(person, "*").
-			From(person, "p").
-			OrderBy(person, "createdAt", op.Descending).
+	testSelectBuilder(t, "SELECT WITH ORDER BY, LIMIT AND SKIP",
+		Select(opt.Columns("*")).
+			From(person, opt.As("p")).
+			OrderBy("createdAt", opt.SortDirection(op.Descending)).
 			Limit(10).
 			Skip(0),
 		`SELECT "p"."createdAt", "p"."updatedAt", "p"."id", "p"."fullName" FROM "Person" AS "p" ORDER BY "p"."createdAt" DESC LIMIT 10 OFFSET 0`,
 	)
 
-	testSelectBuilder(t, "Select with Order By using Undeclared column",
-		Select().
-			Columns(person, "*").
-			From(person, "p").
-			OrderBy(person, "age", op.Descending),
+	testSelectBuilder(t, "SELECT WITH ORDER BY USING UNDECLARED COLUMN",
+		Select(opt.Columns("*")).
+			From(person, opt.As("p")).
+			OrderBy("age", opt.SortDirection(op.Descending)),
 		`SELECT "p"."createdAt", "p"."updatedAt", "p"."id", "p"."fullName" FROM "Person" AS "p"`,
 	)
 
-	testSelectBuilder(t, "Select with Where by PK",
-		Select().
-			Columns(person, "*").
+	testSelectBuilder(t, "SELECT WITH WHERE BY PK",
+		Select(opt.Columns("*")).
 			From(person).
 			Where(Equal(person, person.PrimaryKey)),
 		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person" WHERE "Person"."id" = ?`,
 	)
 
-	testSelectBuilder(t, "Select with Where And",
-		Select().
-			Columns(person, "*").
-			From(person, "p").
+	testSelectBuilder(t, "SELECT WITH WHERE AND",
+		Select(opt.Columns("*")).
+			From(person, opt.As("p")).
 			Where(Equal(person, person.PrimaryKey), Equal(person, "fullName")),
 		`SELECT "p"."createdAt", "p"."updatedAt", "p"."id", "p"."fullName" FROM "Person" AS "p" WHERE "p"."id" = ? AND "p"."fullName" = ?`,
 	)
 
-	testSelectBuilder(t, "Select with Where And Or Nested",
-		Select().
-			Columns(person, "*").
-			From(person, "p").
+	testSelectBuilder(t, "SELECT WITH WHERE AND OR NESTED",
+		Select(opt.Columns("*")).
+			From(person, opt.As("p")).
 			Where(
 				Or(
 					Like(person, "fullName"),
@@ -148,30 +135,26 @@ func TestSelectBuilder(t *testing.T) {
 }
 
 func TestSelectCount(t *testing.T) {
-	testSelectBuilder(t, "Count All",
-		Select().
-			Count("").
+	testSelectBuilder(t, "COUNT ALL",
+		Select(opt.Count("*")).
 			From(person),
 		`SELECT COUNT(*) FROM "Person"`,
 	)
 
-	testSelectBuilder(t, "Count by Id",
-		Select().
-			Count("id", opt.Schema(person)).
+	testSelectBuilder(t, "COUNT BY ID",
+		Select(opt.Count("id", opt.Schema(person))).
 			From(person),
 		`SELECT COUNT("Person"."id") FROM "Person"`,
 	)
 
-	testSelectBuilder(t, "Count by Id with Alias Table",
-		Select().
-			Count("id", opt.Schema(person)).
-			From(person, "p"),
+	testSelectBuilder(t, "COUNT BY ID WITH ALIAS TABLE",
+		Select(opt.Count("id", opt.Schema(person))).
+			From(person, opt.As("p")),
 		`SELECT COUNT("p"."id") FROM "Person" AS "p"`,
 	)
 
-	testSelectBuilder(t, "Count by Id with Alias Field",
-		Select().
-			Count("id", opt.Schema(person), opt.As("count")).
+	testSelectBuilder(t, "COUNT BY ID WITH ALIAS FIELD",
+		Select(opt.Count("id", opt.Schema(person), opt.As("count"))).
 			From(person),
 		`SELECT COUNT("Person"."id") AS "count" FROM "Person"`,
 	)
@@ -180,7 +163,7 @@ func TestSelectCount(t *testing.T) {
 func testSelectBuilder(t *testing.T, name string, b *SelectBuilder, expected string) {
 	actual := b.Build()
 	if actual != expected {
-		t.Errorf("got different generated %s query. Query = %s", name, actual)
+		t.Errorf("%s: FAILED\n  > got different generated query. Query = %s", name, actual)
 	} else {
 		t.Logf("%s: PASSED", name)
 	}

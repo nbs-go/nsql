@@ -1,8 +1,9 @@
 package query
 
-type ColumnMode int8
+type ColumnFormat int8
 
 const (
-	NonAmbiguousColumn ColumnMode = iota
-	JoinColumn
+	NonAmbiguousColumn ColumnFormat = iota
+	SelectJoinColumn
+	NamedArgColumn
 )

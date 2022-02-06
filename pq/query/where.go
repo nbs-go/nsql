@@ -11,14 +11,16 @@ import (
 
 func newWhereComparisonWriter(s *schema.Schema, col string, op op.Operator) *whereComparisonWriter {
 	if !s.IsColumnExist(col) {
-		panic(fmt.Errorf(`"column "%s" is not available in table "%s"`, col, s.TableName))
+		panic(fmt.Errorf(`"columnWriter "%s" is not available in table "%s"`, col, s.TableName))
 	}
 
 	return &whereComparisonWriter{
 		baseWhereComparisonWriter{
-			tableName: s.TableName,
-			column:    col,
-			op:        op,
+			ColumnWriter: &columnWriter{
+				name:      col,
+				tableName: s.TableName,
+			},
+			op: op,
 		}}
 }
 
@@ -66,14 +68,16 @@ func NotILike(s *schema.Schema, col string) *whereComparisonWriter {
 
 func newWhereBetweenWriter(s *schema.Schema, col string, op op.Operator) *whereBetweenWriter {
 	if !s.IsColumnExist(col) {
-		panic(fmt.Errorf(`"column "%s" is not available in table "%s"`, col, s.TableName))
+		panic(fmt.Errorf(`"columnWriter "%s" is not available in table "%s"`, col, s.TableName))
 	}
 
 	return &whereBetweenWriter{
 		baseWhereComparisonWriter{
-			tableName: s.TableName,
-			column:    col,
-			op:        op,
+			ColumnWriter: &columnWriter{
+				name:      col,
+				tableName: s.TableName,
+			},
+			op: op,
 		}}
 }
 
@@ -89,14 +93,16 @@ func NotBetween(s *schema.Schema, col string) *whereBetweenWriter {
 
 func newWhereInWriter(s *schema.Schema, col string, op op.Operator) *whereInWriter {
 	if !s.IsColumnExist(col) {
-		panic(fmt.Errorf(`"column "%s" is not available in table "%s"`, col, s.TableName))
+		panic(fmt.Errorf(`"columnWriter "%s" is not available in table "%s"`, col, s.TableName))
 	}
 
 	return &whereInWriter{
 		baseWhereComparisonWriter{
-			tableName: s.TableName,
-			column:    col,
-			op:        op,
+			ColumnWriter: &columnWriter{
+				name:      col,
+				tableName: s.TableName,
+			},
+			op: op,
 		}}
 }
 
@@ -132,4 +138,49 @@ func Or(c1 query.WhereWriter, cn ...query.WhereWriter) *whereLogicalWriter {
 		op:         op.Or,
 		conditions: conditions,
 	}
+}
+
+func resolveFromOfWhereWriters(ww query.WhereWriter, from *schema.Schema) {
+	// Switch type
+	switch w := ww.(type) {
+	case query.LogicalWhereWriter:
+		// Get conditions
+		for _, cw := range w.GetConditions() {
+			resolveFromOfWhereWriters(cw, from)
+		}
+	case query.ComparisonWhereWriter:
+		// Get alias
+		if w.GetTableName() == fromTableFlag {
+			w.SetSchema(from)
+		}
+	}
+}
+
+func filterWhereWriters(ww query.WhereWriter, tables map[string]selectTable) query.WhereWriter {
+	// Switch type
+	switch w := ww.(type) {
+	case query.LogicalWhereWriter:
+		// Get conditions
+		var conditions []query.WhereWriter
+		for _, cw := range w.GetConditions() {
+			c := filterWhereWriters(cw, tables)
+			// If no writer is set, then delete from array
+			if c == nil {
+				continue
+			}
+			conditions = append(conditions, c)
+		}
+		// Update conditions
+		w.SetConditions(conditions)
+	case query.ComparisonWhereWriter:
+		// Check if condition is registered in table
+		table, ok := tables[w.GetTableName()]
+		if !ok {
+			return nil
+		}
+
+		// Set alias
+		w.SetTableAs(table.as)
+	}
+	return ww
 }

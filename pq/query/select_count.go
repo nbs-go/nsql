@@ -6,18 +6,22 @@ import (
 )
 
 type selectCountWriter struct {
-	column    string
-	tableName string
+	query.ColumnWriter
 	as        string
+	allColumn bool
+}
+
+func (s *selectCountWriter) IsAllColumns() bool {
+	return s.allColumn
 }
 
 func (s *selectCountWriter) SelectQuery() string {
 	var q string
 
-	if s.column == "*" {
+	if s.allColumn {
 		q = "COUNT(*)"
 	} else {
-		q = fmt.Sprintf(`COUNT("%s"."%s")`, s.tableName, s.column)
+		q = fmt.Sprintf(`COUNT(%s)`, s.ColumnQuery())
 	}
 
 	// Set "as" query
@@ -27,12 +31,4 @@ func (s *selectCountWriter) SelectQuery() string {
 	return q
 }
 
-func (s *selectCountWriter) GetTableName() string {
-	return s.tableName
-}
-
-func (s *selectCountWriter) SetTableAlias(alias string) {
-	s.tableName = alias
-}
-
-func (s *selectCountWriter) SetMode(_ query.ColumnMode) {}
+func (s *selectCountWriter) SetFormat(_ query.ColumnFormat) {}

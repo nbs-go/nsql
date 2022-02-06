@@ -2,21 +2,13 @@ package query
 
 import (
 	"fmt"
+	"github.com/nbs-go/nsql/query"
 	"github.com/nbs-go/nsql/query/op"
 )
 
 type baseWhereComparisonWriter struct {
-	tableName string
-	column    string
-	op        op.Operator
-}
-
-func (w *baseWhereComparisonWriter) SetTableAlias(alias string) {
-	w.tableName = alias
-}
-
-func (w *baseWhereComparisonWriter) GetTableName() string {
-	return w.tableName
+	query.ColumnWriter
+	op op.Operator
 }
 
 type whereComparisonWriter struct {
@@ -49,7 +41,10 @@ func (w *whereComparisonWriter) WhereQuery() string {
 	default:
 		return ""
 	}
-	return fmt.Sprintf(`"%s"."%s" %s ?`, w.tableName, w.column, operator)
+
+	q := fmt.Sprintf(`%s %s ?`, w.ColumnQuery(), operator)
+
+	return q
 }
 
 type whereBetweenWriter struct {
@@ -66,7 +61,7 @@ func (w *whereBetweenWriter) WhereQuery() string {
 	default:
 		return ""
 	}
-	return fmt.Sprintf(`"%s"."%s" %s ? AND ?`, w.tableName, w.column, operator)
+	return fmt.Sprintf(`%s %s ? AND ?`, w.ColumnQuery(), operator)
 }
 
 type whereInWriter struct {
@@ -83,5 +78,5 @@ func (w *whereInWriter) WhereQuery() string {
 	default:
 		return ""
 	}
-	return fmt.Sprintf(`"%s"."%s" %s (?)`, w.tableName, w.column, operator)
+	return fmt.Sprintf(`%s %s (?)`, w.ColumnQuery(), operator)
 }

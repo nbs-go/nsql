@@ -1,12 +1,18 @@
 package opt
 
-import "github.com/nbs-go/nsql/schema"
+import (
+	"github.com/nbs-go/nsql/query/op"
+	"github.com/nbs-go/nsql/schema"
+)
 
 // Built in option keys
 
 const (
-	SchemaKey = "schema"
-	AliasKey  = "as"
+	SchemaKey        = "schema"
+	AsKey            = "as"
+	ColumnsKey       = "columns"
+	SortDirectionKey = "sortDirection"
+	CountKey         = "count"
 )
 
 type Options struct {
@@ -23,6 +29,14 @@ func (o *Options) GetString(k string) (string, bool) {
 	return s, ok
 }
 
+func (o *Options) GetStringArray(k string) []string {
+	v, ok := o.KV[k]
+	if !ok {
+		return nil
+	}
+	return v.([]string)
+}
+
 func (o *Options) GetSchema() *schema.Schema {
 	v, ok := o.KV[SchemaKey]
 	if !ok {
@@ -30,6 +44,14 @@ func (o *Options) GetSchema() *schema.Schema {
 	}
 
 	return v.(*schema.Schema)
+}
+
+func (o *Options) GetSortDirection() op.SortDirection {
+	v, ok := o.KV[SortDirectionKey]
+	if !ok {
+		return op.Ascending
+	}
+	return v.(op.SortDirection)
 }
 
 type SetOptionFn = func(*Options)
@@ -50,7 +72,65 @@ func Schema(s *schema.Schema) SetOptionFn {
 
 func As(as string) SetOptionFn {
 	return func(o *Options) {
-		o.KV[AliasKey] = as
+		o.KV[AsKey] = as
+	}
+}
+
+func Count(col string, args ...interface{}) SetOptionFn {
+	return func(o *Options) {
+		// Evaluate arguments
+		optCopy := NewOptions()
+		for _, v := range args {
+			switch cv := v.(type) {
+			case SetOptionFn:
+				cv(optCopy)
+			}
+		}
+
+		// Copy value to kv
+		for k, v := range optCopy.KV {
+			o.KV[k] = v
+		}
+
+		// Set count column
+		o.KV[CountKey] = col
+	}
+}
+
+func Columns(args ...interface{}) SetOptionFn {
+	return func(o *Options) {
+		// Init columns containers
+		var cols []string
+
+		// Evaluate arguments
+		optCopy := NewOptions()
+		for _, v := range args {
+			switch cv := v.(type) {
+			case SetOptionFn:
+				cv(optCopy)
+			case string:
+				cols = append(cols, cv)
+			}
+		}
+
+		// If no columns, then skip
+		if len(cols) == 0 {
+			return
+		}
+
+		// Copy value to kv
+		for k, v := range optCopy.KV {
+			o.KV[k] = v
+		}
+
+		// Set columns value
+		o.KV[ColumnsKey] = cols
+	}
+}
+
+func SortDirection(direction op.SortDirection) SetOptionFn {
+	return func(o *Options) {
+		o.KV[SortDirectionKey] = direction
 	}
 }
 

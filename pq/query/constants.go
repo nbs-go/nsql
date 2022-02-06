@@ -1,5 +1,11 @@
 package query
 
+// Flags, start with underscore to prevent table naming collision
+
 const (
-	allTable = "__all__" // Start with underscore to prevent table name collision
+	forceWriteFlag = "__force__" // Skip table reference checking
+	fromTableFlag  = "__from__"  // Use table that is declared in from
+	skipTableFlag  = "__skip__"  // Mark query part will be excluded
+
+	AllColumns = "*"
 )
