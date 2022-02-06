@@ -9,16 +9,11 @@ import (
 	"strings"
 )
 
-type selectTable struct {
-	schema *schema.Schema
-	as     string
-}
-
 func Select(args ...interface{}) *SelectBuilder {
 	b := SelectBuilder{
 		fields:   []query.SelectWriter{},
 		orderBys: []query.OrderByWriter{},
-		tables:   map[string]selectTable{},
+		tables:   map[string]query.Table{},
 	}
 
 	b.Select(args...)
@@ -33,7 +28,7 @@ type SelectBuilder struct {
 	orderBys []query.OrderByWriter
 	limit    *int
 	skip     *int
-	tables   map[string]selectTable
+	tables   map[string]query.Table
 }
 
 func (b *SelectBuilder) Select(args ...interface{}) *SelectBuilder {
@@ -113,8 +108,7 @@ func (b *SelectBuilder) selectCount(column string, options *opt.Options) {
 	b.fields = append(b.fields, &w)
 }
 
-func (b *SelectBuilder) From(s *schema.Schema,
-	args ...interface{}) *SelectBuilder {
+func (b *SelectBuilder) From(s *schema.Schema, args ...interface{}) *SelectBuilder {
 	// Evaluate options
 	opts := opt.EvaluateOptions(args)
 
@@ -122,14 +116,43 @@ func (b *SelectBuilder) From(s *schema.Schema,
 	as, _ := opts.GetString(opt.AsKey)
 
 	// Create writer
-	w := tableWriter{
-		tableName: s.TableName,
-		as:        as,
-	}
+	w := newTableWriter(s.TableName, as)
 
 	// Add table and set FROM
 	b.addTable(s, as)
-	b.from = &w
+	b.from = w
+
+	return b
+}
+
+func (b *SelectBuilder) Join(s *schema.Schema, onCondition query.WhereWriter, args ...interface{}) *SelectBuilder {
+	// Evaluate options
+	opts := opt.EvaluateOptions(args)
+	joinMethod := opts.GetJoinMethod()
+	as, _ := opts.GetString(opt.AsKey)
+
+	// Resolve joinTableFlag reference
+	resolveJoinTableFlag(onCondition, s)
+
+	// Set table aliases
+	joinTable := query.Table{
+		Schema: s,
+		As:     as,
+	}
+	setJoinTableAs(onCondition, &joinTable, b.tables)
+
+	// Create join writer
+	var w = joinWriter{
+		method:      joinMethod,
+		table:       &joinTable,
+		onCondition: onCondition,
+	}
+
+	// Set join
+	b.from.Join(&w)
+
+	// Add table
+	b.addTable(s, as)
 
 	return b
 }
@@ -143,7 +166,7 @@ func (b *SelectBuilder) Where(w1 query.WhereWriter, wn ...query.WhereWriter) *Se
 
 	// Else, set where with AND logical operators
 	where := append([]query.WhereWriter{w1}, wn...)
-	b.where = &whereLogicalWriter{
+	b.where = &whereLogicWriter{
 		op:         op.And,
 		conditions: where,
 	}
@@ -212,24 +235,7 @@ func (b *SelectBuilder) Build() string {
 	if orderBy != "" {
 		q += orderBy
 	}
-	//// Generate where query
-	//if b.where != nil {
-	//	// Set table aliases
-	//	setAliasOnWhereWriter(b.where, b.tables)
-	//
-	//	// Generate query
-	//	where := b.where.WhereQuery()
-	//
-	//	// If not empty, then add
-	//	if where != "" {
-	//		q += fmt.Sprintf(` WHERE %s`, where)
-	//	}
-	//}
-	//
-	//// Add order by
 
-	//}
-	//
 	// Add limit
 	if b.limit != nil {
 		q += fmt.Sprintf(" LIMIT %d", *b.limit)
@@ -251,7 +257,7 @@ func (b *SelectBuilder) getTableAlias(tableName string) string {
 		return ""
 	}
 
-	return t.as
+	return t.As
 }
 
 func (b *SelectBuilder) writeSelectQuery() string {
@@ -286,15 +292,22 @@ func (b *SelectBuilder) writeSelectQuery() string {
 			exp, eOk := f.(query.Expander)
 			if eOk {
 				// Expand with given schema and replace writer
-				f = exp.Expand(opt.Schema(table.schema))
+				f = exp.Expand(opt.Schema(table.Schema))
 			}
 		}
 
 		// Set alias
-		f.SetTableAs(table.as)
+		f.SetTableAs(table.As)
 
 		// Push to select writer list
 		writers = append(writers, f)
+	}
+
+	// Set format if query has joins
+	if len(b.tables) > 1 {
+		for _, w := range writers {
+			w.SetFormat(query.SelectJoinColumn)
+		}
 	}
 
 	// Generate select query
@@ -332,7 +345,7 @@ func (b *SelectBuilder) writeOrderByQuery() string {
 		}
 
 		// Set alias
-		f.SetTableAs(table.as)
+		f.SetTableAs(table.As)
 
 		writers = append(writers, f)
 	}
@@ -358,7 +371,7 @@ func (b *SelectBuilder) writeWhereQuery() string {
 
 	// Replace fromTableFlag with FROM Table Name
 	from := b.getFromSchema()
-	resolveFromOfWhereWriters(b.where, from)
+	resolveFromTableFlag(b.where, from)
 
 	// Prepare query.SelectWriter
 	w := filterWhereWriters(b.where, b.tables)
@@ -380,12 +393,12 @@ func (b *SelectBuilder) writeWhereQuery() string {
 func (b *SelectBuilder) getFromSchema() *schema.Schema {
 	fromTable := b.from.GetTableName()
 	from := b.tables[fromTable]
-	return from.schema
+	return from.Schema
 }
 
 func (b *SelectBuilder) addTable(s *schema.Schema, as string) {
-	b.tables[s.TableName] = selectTable{
-		schema: s,
-		as:     as,
+	b.tables[s.TableName] = query.Table{
+		Schema: s,
+		As:     as,
 	}
 }

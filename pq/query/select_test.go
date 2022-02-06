@@ -15,7 +15,25 @@ type Person struct {
 	FullName  string    `db:"fullName"`
 }
 
+type Vehicle struct {
+	CreatedAt time.Time `db:"createdAt"`
+	UpdatedAt time.Time `db:"updatedAt"`
+	Id        int64     `db:"id"`
+	Name      string    `db:"name"`
+	Category  string    `db:"category"`
+}
+
+type VehicleOwnership struct {
+	CreatedAt time.Time `db:"createdAt"`
+	UpdatedAt time.Time `db:"updatedAt"`
+	Id        int64     `db:"id"`
+	PersonId  int64     `db:"personId"`
+	VehicleId int64     `db:"vehicleId"`
+}
+
 var person = schema.New(schema.FromModelRef(Person{}))
+var vehicleOwnership = schema.New(schema.FromModelRef(VehicleOwnership{}))
+var vehicle = schema.New(schema.FromModelRef(Vehicle{}))
 
 func TestSelectBasicQuery(t *testing.T) {
 	// Select All
@@ -157,6 +175,71 @@ func TestSelectCount(t *testing.T) {
 		Select(opt.Count("id", opt.Schema(person), opt.As("count"))).
 			From(person),
 		`SELECT COUNT("Person"."id") AS "count" FROM "Person"`,
+	)
+}
+
+func TestSelectJoin(t *testing.T) {
+	testSelectBuilder(t, "INNER JOIN 2 TABLE",
+		Select(opt.Columns("*")).
+			Select(opt.Columns("*", opt.Schema(vehicleOwnership))).
+			From(person).
+			Join(vehicleOwnership, Equal(person, "id", On("personId")), opt.JoinMethod(op.InnerJoin)),
+		`SELECT "Person"."createdAt" AS "Person.createdAt", "Person"."updatedAt" AS "Person.updatedAt", "Person"."id" AS "Person.id", "Person"."fullName" AS "Person.fullName", "VehicleOwnership"."createdAt" AS "VehicleOwnership.createdAt", "VehicleOwnership"."updatedAt" AS "VehicleOwnership.updatedAt", "VehicleOwnership"."id" AS "VehicleOwnership.id", "VehicleOwnership"."personId" AS "VehicleOwnership.personId", "VehicleOwnership"."vehicleId" AS "VehicleOwnership.vehicleId" FROM "Person" INNER JOIN "VehicleOwnership" ON "Person"."id" = "VehicleOwnership"."personId"`,
+	)
+
+	testSelectBuilder(t, "LEFT JOIN 2 TABLE",
+		Select(opt.Columns("*")).
+			Select(opt.Columns("*", opt.Schema(vehicleOwnership))).
+			From(person).
+			Join(vehicleOwnership, Equal(person, "id", On("personId")), opt.JoinMethod(op.LeftJoin)),
+		`SELECT "Person"."createdAt" AS "Person.createdAt", "Person"."updatedAt" AS "Person.updatedAt", "Person"."id" AS "Person.id", "Person"."fullName" AS "Person.fullName", "VehicleOwnership"."createdAt" AS "VehicleOwnership.createdAt", "VehicleOwnership"."updatedAt" AS "VehicleOwnership.updatedAt", "VehicleOwnership"."id" AS "VehicleOwnership.id", "VehicleOwnership"."personId" AS "VehicleOwnership.personId", "VehicleOwnership"."vehicleId" AS "VehicleOwnership.vehicleId" FROM "Person" LEFT JOIN "VehicleOwnership" ON "Person"."id" = "VehicleOwnership"."personId"`,
+	)
+
+	testSelectBuilder(t, "RIGHT JOIN 2 TABLE",
+		Select(opt.Columns("*")).
+			Select(opt.Columns("*", opt.Schema(vehicleOwnership))).
+			From(person).
+			Join(vehicleOwnership, Equal(person, "id", On("personId")), opt.JoinMethod(op.RightJoin)),
+		`SELECT "Person"."createdAt" AS "Person.createdAt", "Person"."updatedAt" AS "Person.updatedAt", "Person"."id" AS "Person.id", "Person"."fullName" AS "Person.fullName", "VehicleOwnership"."createdAt" AS "VehicleOwnership.createdAt", "VehicleOwnership"."updatedAt" AS "VehicleOwnership.updatedAt", "VehicleOwnership"."id" AS "VehicleOwnership.id", "VehicleOwnership"."personId" AS "VehicleOwnership.personId", "VehicleOwnership"."vehicleId" AS "VehicleOwnership.vehicleId" FROM "Person" RIGHT JOIN "VehicleOwnership" ON "Person"."id" = "VehicleOwnership"."personId"`,
+	)
+
+	testSelectBuilder(t, "FULL JOIN 2 TABLE",
+		Select(opt.Columns("*")).
+			Select(opt.Columns("*", opt.Schema(vehicleOwnership))).
+			From(person).
+			Join(vehicleOwnership, Equal(person, "id", On("personId")), opt.JoinMethod(op.FullJoin)),
+		`SELECT "Person"."createdAt" AS "Person.createdAt", "Person"."updatedAt" AS "Person.updatedAt", "Person"."id" AS "Person.id", "Person"."fullName" AS "Person.fullName", "VehicleOwnership"."createdAt" AS "VehicleOwnership.createdAt", "VehicleOwnership"."updatedAt" AS "VehicleOwnership.updatedAt", "VehicleOwnership"."id" AS "VehicleOwnership.id", "VehicleOwnership"."personId" AS "VehicleOwnership.personId", "VehicleOwnership"."vehicleId" AS "VehicleOwnership.vehicleId" FROM "Person" FULL OUTER JOIN "VehicleOwnership" ON "Person"."id" = "VehicleOwnership"."personId"`,
+	)
+
+	testSelectBuilder(t, "MANY TO MANY",
+		Select(opt.Columns("*")).
+			Select(opt.Columns("*", opt.Schema(vehicleOwnership))).
+			Select(opt.Columns("*", opt.Schema(vehicle))).
+			From(person).
+			Join(vehicleOwnership, Equal(person, "id", On("personId"))).
+			Join(vehicle, Equal(vehicleOwnership, "vehicleId", On("id"))),
+		`SELECT "Person"."createdAt" AS "Person.createdAt", "Person"."updatedAt" AS "Person.updatedAt", "Person"."id" AS "Person.id", "Person"."fullName" AS "Person.fullName", "VehicleOwnership"."createdAt" AS "VehicleOwnership.createdAt", "VehicleOwnership"."updatedAt" AS "VehicleOwnership.updatedAt", "VehicleOwnership"."id" AS "VehicleOwnership.id", "VehicleOwnership"."personId" AS "VehicleOwnership.personId", "VehicleOwnership"."vehicleId" AS "VehicleOwnership.vehicleId", "Vehicle"."createdAt" AS "Vehicle.createdAt", "Vehicle"."updatedAt" AS "Vehicle.updatedAt", "Vehicle"."id" AS "Vehicle.id", "Vehicle"."name" AS "Vehicle.name", "Vehicle"."category" AS "Vehicle.category" FROM "Person" INNER JOIN "VehicleOwnership" ON "Person"."id" = "VehicleOwnership"."personId" INNER JOIN "Vehicle" ON "VehicleOwnership"."vehicleId" = "Vehicle"."id"`,
+	)
+
+	testSelectBuilder(t, "MANY TO MANY WITH ALIAS",
+		Select(opt.Columns("*")).
+			Select(opt.Columns("*", opt.Schema(vehicleOwnership))).
+			Select(opt.Columns("*", opt.Schema(vehicle))).
+			From(person, opt.As("p")).
+			Join(vehicleOwnership, Equal(person, "id", On("personId")), opt.As("vo")).
+			Join(vehicle, Equal(vehicleOwnership, "vehicleId", On("id")), opt.As("v")),
+		`SELECT "p"."createdAt" AS "p.createdAt", "p"."updatedAt" AS "p.updatedAt", "p"."id" AS "p.id", "p"."fullName" AS "p.fullName", "vo"."createdAt" AS "vo.createdAt", "vo"."updatedAt" AS "vo.updatedAt", "vo"."id" AS "vo.id", "vo"."personId" AS "vo.personId", "vo"."vehicleId" AS "vo.vehicleId", "v"."createdAt" AS "v.createdAt", "v"."updatedAt" AS "v.updatedAt", "v"."id" AS "v.id", "v"."name" AS "v.name", "v"."category" AS "v.category" FROM "Person" AS "p" INNER JOIN "VehicleOwnership" AS "vo" ON "p"."id" = "vo"."personId" INNER JOIN "Vehicle" AS "v" ON "vo"."vehicleId" = "v"."id"`,
+	)
+
+	testSelectBuilder(t, "INNER JOIN WITH FILTER",
+		Select(opt.Columns("*")).
+			From(person, opt.As("p")).
+			Join(vehicleOwnership,
+				Equal(person, "id", On("personId")),
+				opt.JoinMethod(op.InnerJoin), opt.As("vo"),
+			).
+			Where(GreaterThanEqual(vehicleOwnership, "createdAt")),
+		`SELECT "p"."createdAt" AS "p.createdAt", "p"."updatedAt" AS "p.updatedAt", "p"."id" AS "p.id", "p"."fullName" AS "p.fullName" FROM "Person" AS "p" INNER JOIN "VehicleOwnership" AS "vo" ON "p"."id" = "vo"."personId" WHERE "vo"."createdAt" >= ?`,
 	)
 }
 

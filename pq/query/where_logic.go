@@ -7,16 +7,16 @@ import (
 	"strings"
 )
 
-type whereLogicalWriter struct {
+type whereLogicWriter struct {
 	op         op.Operator
 	conditions []query.WhereWriter
 }
 
-func (w *whereLogicalWriter) SetConditions(conditions []query.WhereWriter) {
+func (w *whereLogicWriter) SetConditions(conditions []query.WhereWriter) {
 	w.conditions = conditions
 }
 
-func (w *whereLogicalWriter) WhereQuery() string {
+func (w *whereLogicWriter) WhereQuery() string {
 	// If no conditions, then return empty string
 	if len(w.conditions) == 0 {
 		return ""
@@ -43,7 +43,7 @@ func (w *whereLogicalWriter) WhereQuery() string {
 		}
 
 		// If condition is a logical, then add brackets
-		if _, ok := cw.(query.LogicalWhereWriter); ok {
+		if _, ok := cw.(query.WhereLogicWriter); ok {
 			cq = fmt.Sprintf("(%s)", cq)
 		}
 
@@ -53,6 +53,6 @@ func (w *whereLogicalWriter) WhereQuery() string {
 	return strings.Join(conditions, separator)
 }
 
-func (w *whereLogicalWriter) GetConditions() []query.WhereWriter {
+func (w *whereLogicWriter) GetConditions() []query.WhereWriter {
 	return w.conditions
 }

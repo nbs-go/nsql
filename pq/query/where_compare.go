@@ -6,16 +6,17 @@ import (
 	"github.com/nbs-go/nsql/query/op"
 )
 
-type baseWhereComparisonWriter struct {
+type whereCompareWriter struct {
 	query.ColumnWriter
-	op op.Operator
+	op       op.Operator
+	variable query.VariableWriter
 }
 
-type whereComparisonWriter struct {
-	baseWhereComparisonWriter
+func (w *whereCompareWriter) GetVariable() query.VariableWriter {
+	return w.variable
 }
 
-func (w *whereComparisonWriter) WhereQuery() string {
+func (w *whereCompareWriter) WhereQuery() string {
 	var operator string
 	switch w.op {
 	case op.Equal:
@@ -38,39 +39,10 @@ func (w *whereComparisonWriter) WhereQuery() string {
 		operator = "ILIKE"
 	case op.NotILike:
 		operator = "NOT ILIKE"
-	default:
-		return ""
-	}
-
-	q := fmt.Sprintf(`%s %s ?`, w.ColumnQuery(), operator)
-
-	return q
-}
-
-type whereBetweenWriter struct {
-	baseWhereComparisonWriter
-}
-
-func (w *whereBetweenWriter) WhereQuery() string {
-	var operator string
-	switch w.op {
 	case op.Between:
 		operator = "BETWEEN"
 	case op.NotBetween:
 		operator = "NOT BETWEEN"
-	default:
-		return ""
-	}
-	return fmt.Sprintf(`%s %s ? AND ?`, w.ColumnQuery(), operator)
-}
-
-type whereInWriter struct {
-	baseWhereComparisonWriter
-}
-
-func (w *whereInWriter) WhereQuery() string {
-	var operator string
-	switch w.op {
 	case op.In:
 		operator = "IN"
 	case op.NotIn:
@@ -78,5 +50,8 @@ func (w *whereInWriter) WhereQuery() string {
 	default:
 		return ""
 	}
-	return fmt.Sprintf(`%s %s (?)`, w.ColumnQuery(), operator)
+
+	q := fmt.Sprintf(`%s %s %s`, w.ColumnQuery(), operator, w.variable.VariableQuery())
+
+	return q
 }

@@ -14,6 +14,14 @@ type columnWriter struct {
 	format    query.ColumnFormat
 }
 
+func (w *columnWriter) VariableQuery() string {
+	return w.ColumnQuery()
+}
+
+func (w *columnWriter) GetColumn() string {
+	return w.name
+}
+
 func (w *columnWriter) SetSchema(s *schema.Schema) {
 	// Check if column is part of schema
 	if w.name != AllColumns && !s.IsColumnExist(w.name) {
@@ -76,8 +84,6 @@ func writeColumn(tableName string, name string, format query.ColumnFormat) strin
 		return fmt.Sprintf(`"%s"."%s"`, tableName, name)
 	case query.SelectJoinColumn:
 		return fmt.Sprintf(`"%s"."%s" AS "%s.%s"`, tableName, name, tableName, name)
-	case query.NamedArgColumn:
-		return fmt.Sprintf(`:%s`, name)
 	}
 	return ""
 }

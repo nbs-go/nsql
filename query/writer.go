@@ -30,6 +30,7 @@ type SelectWriter interface {
 // FromWriter must be implemented by part of query that will generate query in FROM
 type FromWriter interface {
 	FromQuery() string
+	Join(j JoinWriter)
 	TableGetter
 }
 
@@ -43,12 +44,14 @@ type OrderByWriter interface {
 	SchemaSetter
 }
 
-type ComparisonWhereWriter interface {
+type WhereCompareWriter interface {
+	GetColumn() string
+	GetVariable() VariableWriter
 	AliasSetter
 	SchemaSetter
 }
 
-type LogicalWhereWriter interface {
+type WhereLogicWriter interface {
 	GetConditions() []WhereWriter
 	SetConditions(conditions []WhereWriter)
 }
@@ -56,10 +59,20 @@ type LogicalWhereWriter interface {
 type ColumnWriter interface {
 	ColumnQuery() string
 	SetFormat(format ColumnFormat)
+	GetColumn() string
 	AliasSetter
 	SchemaSetter
 }
 
 type Expander interface {
 	Expand(args ...interface{}) SelectWriter
+}
+
+type JoinWriter interface {
+	JoinQuery() string
+	GetTableName() string
+}
+
+type VariableWriter interface {
+	VariableQuery() string
 }

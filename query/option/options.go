@@ -1,6 +1,7 @@
 package opt
 
 import (
+	"github.com/nbs-go/nsql/query"
 	"github.com/nbs-go/nsql/query/op"
 	"github.com/nbs-go/nsql/schema"
 )
@@ -13,6 +14,8 @@ const (
 	ColumnsKey       = "columns"
 	SortDirectionKey = "sortDirection"
 	CountKey         = "count"
+	JoinMethodKey    = "joinMethod"
+	VariableKey      = "variable"
 )
 
 type Options struct {
@@ -52,6 +55,22 @@ func (o *Options) GetSortDirection() op.SortDirection {
 		return op.Ascending
 	}
 	return v.(op.SortDirection)
+}
+
+func (o *Options) GetJoinMethod() op.JoinMethod {
+	v, ok := o.KV[JoinMethodKey]
+	if !ok {
+		return op.InnerJoin
+	}
+	return v.(op.JoinMethod)
+}
+
+func (o *Options) GetVariable(key string) query.VariableWriter {
+	v, ok := o.KV[key]
+	if !ok {
+		return nil
+	}
+	return v.(query.VariableWriter)
 }
 
 type SetOptionFn = func(*Options)
@@ -131,6 +150,12 @@ func Columns(args ...interface{}) SetOptionFn {
 func SortDirection(direction op.SortDirection) SetOptionFn {
 	return func(o *Options) {
 		o.KV[SortDirectionKey] = direction
+	}
+}
+
+func JoinMethod(m op.JoinMethod) SetOptionFn {
+	return func(o *Options) {
+		o.KV[JoinMethodKey] = m
 	}
 }
 
