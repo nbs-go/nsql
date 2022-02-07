@@ -49,7 +49,7 @@ func (b *SelectBuilder) Select(args ...interface{}) *SelectBuilder {
 		// If schema not set, then will set selected fields using table that is defined in "FROM"
 		tableName = fromTableFlag
 	} else {
-		tableName = s.TableName
+		tableName = s.TableName()
 	}
 
 	// Get columnSchemaWriter
@@ -100,7 +100,7 @@ func (b *SelectBuilder) selectCount(column string, options *opt.Options) {
 		// Set writer
 		w.ColumnWriter = &columnWriter{
 			name:      column,
-			tableName: s.TableName,
+			tableName: s.TableName(),
 		}
 	}
 
@@ -116,7 +116,7 @@ func (b *SelectBuilder) From(s *schema.Schema, args ...interface{}) *SelectBuild
 	as, _ := opts.GetString(opt.AsKey)
 
 	// Create writer
-	w := newTableWriter(s.TableName, as)
+	w := newTableWriter(s.TableName(), as)
 
 	// Add table and set FROM
 	b.addTable(s, as)
@@ -186,7 +186,7 @@ func (b *SelectBuilder) OrderBy(col string, args ...interface{}) *SelectBuilder 
 		if !s.IsColumnExist(col) {
 			return b
 		}
-		tableName = s.TableName
+		tableName = s.TableName()
 	} else {
 		tableName = fromTableFlag
 	}
@@ -397,7 +397,7 @@ func (b *SelectBuilder) getFromSchema() *schema.Schema {
 }
 
 func (b *SelectBuilder) addTable(s *schema.Schema, as string) {
-	b.tables[s.TableName] = query.Table{
+	b.tables[s.TableName()] = query.Table{
 		Schema: s,
 		As:     as,
 	}

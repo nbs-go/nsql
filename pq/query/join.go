@@ -13,7 +13,7 @@ type joinWriter struct {
 }
 
 func (j *joinWriter) GetTableName() string {
-	return j.table.Schema.TableName
+	return j.table.Schema.TableName()
 }
 
 func (j *joinWriter) JoinQuery() string {
@@ -34,7 +34,7 @@ func (j *joinWriter) JoinQuery() string {
 
 	// Generate table name
 	table := j.table
-	tableName := fmt.Sprintf(`"%s"`, table.Schema.TableName)
+	tableName := fmt.Sprintf(`"%s"`, table.Schema.TableName())
 	if table.As != "" {
 		tableName += fmt.Sprintf(` AS "%s"`, table.As)
 	}

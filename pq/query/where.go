@@ -12,7 +12,7 @@ import (
 
 func newWhereComparisonWriter(s *schema.Schema, col string, operator op.Operator, args []interface{}) *whereCompareWriter {
 	if !s.IsColumnExist(col) {
-		panic(fmt.Errorf(`"columnWriter "%s" is not available in table "%s"`, col, s.TableName))
+		panic(fmt.Errorf(`"columnWriter "%s" is not available in table "%s"`, col, s.TableName()))
 	}
 
 	opts := opt.EvaluateOptions(args)
@@ -35,7 +35,7 @@ func newWhereComparisonWriter(s *schema.Schema, col string, operator op.Operator
 	return &whereCompareWriter{
 		ColumnWriter: &columnWriter{
 			name:      col,
-			tableName: s.TableName,
+			tableName: s.TableName(),
 		},
 		op:       operator,
 		variable: v,
@@ -217,9 +217,9 @@ func setJoinColumnTableAs(column query.ColumnWriter, joinTable *query.Table, tab
 	col := column.GetColumn()
 
 	// Check in joinSchema
-	if tableName == joinTable.Schema.TableName {
+	if tableName == joinTable.Schema.TableName() {
 		if !joinTable.Schema.IsColumnExist(col) {
-			panic(fmt.Errorf(`column "%s" is not declared in Table "%s"`, col, joinTable.Schema.TableName))
+			panic(fmt.Errorf(`column "%s" is not declared in Table "%s"`, col, joinTable.Schema.TableName()))
 		}
 		// Set alias
 		column.SetTableAs(joinTable.As)

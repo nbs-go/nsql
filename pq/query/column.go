@@ -29,7 +29,7 @@ func (w *columnWriter) SetSchema(s *schema.Schema) {
 		w.tableName = skipTableFlag
 		return
 	}
-	w.tableName = s.TableName
+	w.tableName = s.TableName()
 }
 
 func (w *columnWriter) Expand(args ...interface{}) query.SelectWriter {
@@ -45,8 +45,8 @@ func (w *columnWriter) Expand(args ...interface{}) query.SelectWriter {
 	// Expand to columnWriter schema
 	return &columnSchemaWriter{
 		schema:    s,
-		columns:   s.GetColumns(),
-		tableName: s.TableName,
+		columns:   s.Columns(),
+		tableName: s.TableName(),
 	}
 }
 

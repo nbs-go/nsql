@@ -16,12 +16,12 @@ type columnSchemaWriter struct {
 
 func (w *columnSchemaWriter) SetSchema(s *schema.Schema) {
 	w.schema = s
-	w.tableName = s.TableName
+	w.tableName = s.TableName()
 
 }
 func (w *columnSchemaWriter) GetTableName() string {
 	if w.schema != nil {
-		return w.schema.TableName
+		return w.schema.TableName()
 	}
 	return w.tableName
 }
@@ -29,7 +29,7 @@ func (w *columnSchemaWriter) GetTableName() string {
 func (w *columnSchemaWriter) SelectQuery() string {
 	// Use schema table name if not set
 	if w.tableName == "" {
-		w.tableName = w.schema.TableName
+		w.tableName = w.schema.TableName()
 	}
 
 	// Create query
