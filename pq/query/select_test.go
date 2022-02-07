@@ -241,6 +241,20 @@ func TestSelectJoin(t *testing.T) {
 			Where(GreaterThanEqual(vehicleOwnership, "createdAt")),
 		`SELECT "p"."createdAt" AS "p.createdAt", "p"."updatedAt" AS "p.updatedAt", "p"."id" AS "p.id", "p"."fullName" AS "p.fullName" FROM "Person" AS "p" INNER JOIN "VehicleOwnership" AS "vo" ON "p"."id" = "vo"."personId" WHERE "vo"."createdAt" >= ?`,
 	)
+
+	testSelectBuilder(t, "INNER JOIN WITH AND CONDITION",
+		Select(opt.Columns("*")).
+			Select(opt.Columns(opt.Schema(vehicleOwnership), "vehicleId")).
+			From(person, opt.As("p")).
+			Join(vehicleOwnership,
+				And(
+					Equal(person, "id", On("personId")),
+					GreaterThan(vehicleOwnership, "createdAt"),
+				),
+				opt.JoinMethod(op.InnerJoin), opt.As("vo"),
+			),
+		`SELECT "p"."createdAt" AS "p.createdAt", "p"."updatedAt" AS "p.updatedAt", "p"."id" AS "p.id", "p"."fullName" AS "p.fullName", "vo"."vehicleId" AS "vo.vehicleId" FROM "Person" AS "p" INNER JOIN "VehicleOwnership" AS "vo" ON "p"."id" = "vo"."personId" AND "vo"."createdAt" > ?`,
+	)
 }
 
 func testSelectBuilder(t *testing.T, name string, b *SelectBuilder, expected string) {
