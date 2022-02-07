@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"strings"
 	"testing"
 	"time"
 )
@@ -16,20 +17,20 @@ type Person struct {
 	lastName  string
 }
 
-func TestPointer(t *testing.T) {
+func TestStructAndPointer(t *testing.T) {
+	// Init Test Cases
 	sPtr := New(FromModelRef(new(Person)))
 	sStruct := New(FromModelRef(Person{}))
 
-	if sPtr.TableName != sStruct.TableName {
-		t.Errorf("got different table name. sPtr = %s, sStruct = %s", sPtr.TableName, sStruct.TableName)
-	}
+	// Test #1
+	compareString(t, "SAME TABLE NAME", sPtr.tableName, sStruct.TableName())
 
-	if sPtr.CountColumns() != sStruct.CountColumns() {
-		t.Errorf("got different columns length. sPtr = %d, sStruct = %d", sPtr.CountColumns(), sStruct.CountColumns())
-	}
+	// Test #2
+	compareStringArray(t, "SAME COLUMNS", sPtr.Columns(), sStruct.Columns())
 }
 
 func TestEmbeddedFields(t *testing.T) {
+	// Init Test Cases
 	type BaseModel struct {
 		CreatedAt time.Time `db:"createdAt"`
 		UpdatedAt time.Time `db:"updatedAt"`
@@ -54,47 +55,40 @@ func TestEmbeddedFields(t *testing.T) {
 	sEmbPtr := New(FromModelRef(PersonEmbPtr{}), TableName("Person"))
 	sNoEmb := New(FromModelRef(Person{}), TableName("Person"))
 
-	if sEmb.TableName != sNoEmb.TableName {
-		t.Errorf("got different table name. sEmb = %s, sNoEmb = %s", sEmb.TableName, sNoEmb.TableName)
-	}
+	// Test #1
+	compareString(t, "SAME TABLE NAME", sEmb.TableName(), sNoEmb.TableName())
 
-	if sEmbPtr.TableName != sNoEmb.TableName {
-		t.Errorf("got different table name. sEmbPtr = %s, sNoEmb = %s", sEmbPtr.TableName, sNoEmb.TableName)
-	}
+	// Test #2
+	compareString(t, "SAME TABLE NAME (POINTER)", sEmbPtr.TableName(), sNoEmb.TableName())
 
-	if sEmb.CountColumns() != sNoEmb.CountColumns() {
-		t.Errorf("got different columns length. sEmb = %d, sNoEmb = %d", sEmb.CountColumns(), sNoEmb.CountColumns())
-	}
+	// Test #3
+	compareString(t, "SAME TABLE NAME (EMBEDDED POINTER)", sEmbPtr.TableName(), sEmb.TableName())
 
-	if sEmbPtr.CountColumns() != sNoEmb.CountColumns() {
-		t.Errorf("got different columns length. sEmbPtr = %d, sNoEmb = %d", sEmbPtr.CountColumns(), sNoEmb.CountColumns())
-	}
+	// Test #4
+	compareStringArray(t, "SAME COLUMNS", sEmb.Columns(), sNoEmb.Columns())
+
+	// Test #5
+	compareStringArray(t, "SAME COLUMNS (POINTER)", sEmbPtr.Columns(), sNoEmb.Columns())
+
+	// Test #6
+	compareStringArray(t, "SAME COLUMNS (EMBEDDED POINTER)", sEmbPtr.Columns(), sEmb.Columns())
 }
 
 func TestManual(t *testing.T) {
+	// Init case
 	sModelRef := New(FromModelRef(Person{}), AutoIncrement(false))
-	sManual := New(TableName("Person"), Columns("createdAt", "updatedAt", "id", "fullName", "birthDate", "NickName"), AutoIncrement(false))
+	sManual := New(TableName("Person"),
+		Columns("createdAt", "updatedAt", "id", "fullName", "birthDate", "NickName"),
+		AutoIncrement(false))
 
-	if sModelRef.TableName != sManual.TableName {
-		t.Errorf("got different table name. sModelRef = %s, sManual = %s", sModelRef.TableName, sManual.TableName)
-	}
+	// Test #1
+	compareString(t, "SAME TABLE NAME", sManual.TableName(), sModelRef.TableName())
 
-	if sModelRef.CountColumns() != sManual.CountColumns() {
-		t.Errorf("got different columns length. sModelRef = %d, sManual = %d", sModelRef.CountColumns(), sManual.CountColumns())
-	}
+	// Test #2
+	compareStringArray(t, "SAME COLUMNS", sManual.Columns(), sModelRef.Columns())
 
-	if sModelRef.AutoIncrement != sManual.AutoIncrement {
-		t.Errorf("got different auto increment value. sModelRef = %t, sManual = %t", sModelRef.AutoIncrement, sManual.AutoIncrement)
-	}
-
-	// Check columns
-	cols := sManual.GetColumns()
-
-	for _, c := range cols {
-		if !sModelRef.IsColumnExist(c) {
-			t.Errorf("column not found in model reference. Column: %s", c)
-		}
-	}
+	// Test #3
+	compareBoolean(t, "SAME AUTO INCREMENT", sManual.AutoIncrement(), sModelRef.AutoIncrement())
 }
 
 func TestCustomPK(t *testing.T) {
@@ -105,7 +99,55 @@ func TestCustomPK(t *testing.T) {
 
 	s := New(FromModelRef(Log{}), PrimaryKey("logId"))
 
-	if s.PrimaryKey != "logId" {
-		t.Errorf("got different custom primary key. PrimaryKey = %s", s.PrimaryKey)
+	// Test #1
+	compareString(t, "CUSTOM PK", s.PrimaryKey(), "logId")
+}
+
+func TestGetColumns(t *testing.T) {
+	// Init schema
+	person := New(FromModelRef(new(Person)))
+
+	// Test #1
+	compareStringArray(t, "GET COLUMNS", person.Columns(),
+		[]string{"createdAt", "updatedAt", "id", "fullName", "birthDate", "NickName"})
+
+	// Test #2
+	compareStringArray(t, "GET INSERT COLUMNS", person.InsertColumns(),
+		[]string{"createdAt", "updatedAt", "fullName", "birthDate", "NickName"})
+
+	// Test #3
+	compareStringArray(t, "GET UPDATE COLUMNS", person.UpdateColumns(),
+		[]string{"createdAt", "updatedAt", "fullName", "birthDate", "NickName"})
+
+	// Test #4
+	personNoAI := New(FromModelRef(new(Person)), AutoIncrement(false))
+	compareStringArray(t, "GET INSERT COLUMNS (NO AUTO INCREMENT)", personNoAI.InsertColumns(),
+		[]string{"createdAt", "updatedAt", "id", "fullName", "birthDate", "NickName"})
+}
+
+func compareStringArray(t *testing.T, expectation string, actual, expected []string) {
+	s1 := strings.Join(actual, ", ")
+	s2 := strings.Join(expected, ", ")
+
+	if s1 != s2 {
+		t.Errorf("%s: FAILED\n  > got different values: %s", expectation, s1)
+	} else {
+		t.Logf("%s: PASSED", expectation)
+	}
+}
+
+func compareString(t *testing.T, expectation string, actual, expected string) {
+	if actual != expected {
+		t.Errorf("%s: FAILED\n  > got different values: %s", expectation, actual)
+	} else {
+		t.Logf("%s: PASSED", expectation)
+	}
+}
+
+func compareBoolean(t *testing.T, expectation string, actual, expected bool) {
+	if actual != expected {
+		t.Errorf("%s: FAILED\n  > got different values: %t", expectation, actual)
+	} else {
+		t.Logf("%s: PASSED", expectation)
 	}
 }
