@@ -37,6 +37,28 @@ func (s *Schema) Columns() []string {
 	return cols
 }
 
+func (s *Schema) InsertColumns() []string {
+	if !s.autoIncrement {
+		return s.Columns()
+	}
+	return s.UpdateColumns()
+}
+
+func (s *Schema) UpdateColumns() []string {
+	// Get columns
+	cols := s.Columns()
+
+	// Filter out pk
+	pk := s.primaryKey
+	for i, c := range cols {
+		if c == pk {
+			cols = append(cols[:i], cols[i+1:]...)
+			break
+		}
+	}
+	return cols
+}
+
 func (s *Schema) CountColumns() int {
 	return len(s.columns)
 }
