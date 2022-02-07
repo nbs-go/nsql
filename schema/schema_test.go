@@ -1,7 +1,7 @@
 package schema
 
 import (
-	"strings"
+	"github.com/nbs-go/nsql/test_utils"
 	"testing"
 	"time"
 )
@@ -23,10 +23,10 @@ func TestStructAndPointer(t *testing.T) {
 	sStruct := New(FromModelRef(Person{}))
 
 	// Test #1
-	compareString(t, "SAME TABLE NAME", sPtr.tableName, sStruct.TableName())
+	test_utils.CompareString(t, "SAME TABLE NAME", sPtr.tableName, sStruct.TableName())
 
 	// Test #2
-	compareStringArray(t, "SAME COLUMNS", sPtr.Columns(), sStruct.Columns())
+	test_utils.CompareStringArray(t, "SAME COLUMNS", sPtr.Columns(), sStruct.Columns())
 }
 
 func TestEmbeddedFields(t *testing.T) {
@@ -56,22 +56,22 @@ func TestEmbeddedFields(t *testing.T) {
 	sNoEmb := New(FromModelRef(Person{}), TableName("Person"))
 
 	// Test #1
-	compareString(t, "SAME TABLE NAME", sEmb.TableName(), sNoEmb.TableName())
+	test_utils.CompareString(t, "SAME TABLE NAME", sEmb.TableName(), sNoEmb.TableName())
 
 	// Test #2
-	compareString(t, "SAME TABLE NAME (POINTER)", sEmbPtr.TableName(), sNoEmb.TableName())
+	test_utils.CompareString(t, "SAME TABLE NAME (POINTER)", sEmbPtr.TableName(), sNoEmb.TableName())
 
 	// Test #3
-	compareString(t, "SAME TABLE NAME (EMBEDDED POINTER)", sEmbPtr.TableName(), sEmb.TableName())
+	test_utils.CompareString(t, "SAME TABLE NAME (EMBEDDED POINTER)", sEmbPtr.TableName(), sEmb.TableName())
 
 	// Test #4
-	compareStringArray(t, "SAME COLUMNS", sEmb.Columns(), sNoEmb.Columns())
+	test_utils.CompareStringArray(t, "SAME COLUMNS", sEmb.Columns(), sNoEmb.Columns())
 
 	// Test #5
-	compareStringArray(t, "SAME COLUMNS (POINTER)", sEmbPtr.Columns(), sNoEmb.Columns())
+	test_utils.CompareStringArray(t, "SAME COLUMNS (POINTER)", sEmbPtr.Columns(), sNoEmb.Columns())
 
 	// Test #6
-	compareStringArray(t, "SAME COLUMNS (EMBEDDED POINTER)", sEmbPtr.Columns(), sEmb.Columns())
+	test_utils.CompareStringArray(t, "SAME COLUMNS (EMBEDDED POINTER)", sEmbPtr.Columns(), sEmb.Columns())
 }
 
 func TestManual(t *testing.T) {
@@ -82,13 +82,13 @@ func TestManual(t *testing.T) {
 		AutoIncrement(false))
 
 	// Test #1
-	compareString(t, "SAME TABLE NAME", sManual.TableName(), sModelRef.TableName())
+	test_utils.CompareString(t, "SAME TABLE NAME", sManual.TableName(), sModelRef.TableName())
 
 	// Test #2
-	compareStringArray(t, "SAME COLUMNS", sManual.Columns(), sModelRef.Columns())
+	test_utils.CompareStringArray(t, "SAME COLUMNS", sManual.Columns(), sModelRef.Columns())
 
 	// Test #3
-	compareBoolean(t, "SAME AUTO INCREMENT", sManual.AutoIncrement(), sModelRef.AutoIncrement())
+	test_utils.CompareBoolean(t, "SAME AUTO INCREMENT", sManual.AutoIncrement(), sModelRef.AutoIncrement())
 }
 
 func TestCustomPK(t *testing.T) {
@@ -100,7 +100,7 @@ func TestCustomPK(t *testing.T) {
 	s := New(FromModelRef(Log{}), PrimaryKey("logId"))
 
 	// Test #1
-	compareString(t, "CUSTOM PK", s.PrimaryKey(), "logId")
+	test_utils.CompareString(t, "CUSTOM PK", s.PrimaryKey(), "logId")
 }
 
 func TestGetColumns(t *testing.T) {
@@ -108,46 +108,19 @@ func TestGetColumns(t *testing.T) {
 	person := New(FromModelRef(new(Person)))
 
 	// Test #1
-	compareStringArray(t, "GET COLUMNS", person.Columns(),
+	test_utils.CompareStringArray(t, "GET COLUMNS", person.Columns(),
 		[]string{"createdAt", "updatedAt", "id", "fullName", "birthDate", "NickName"})
 
 	// Test #2
-	compareStringArray(t, "GET INSERT COLUMNS", person.InsertColumns(),
+	test_utils.CompareStringArray(t, "GET INSERT COLUMNS", person.InsertColumns(),
 		[]string{"createdAt", "updatedAt", "fullName", "birthDate", "NickName"})
 
 	// Test #3
-	compareStringArray(t, "GET UPDATE COLUMNS", person.UpdateColumns(),
+	test_utils.CompareStringArray(t, "GET UPDATE COLUMNS", person.UpdateColumns(),
 		[]string{"createdAt", "updatedAt", "fullName", "birthDate", "NickName"})
 
 	// Test #4
 	personNoAI := New(FromModelRef(new(Person)), AutoIncrement(false))
-	compareStringArray(t, "GET INSERT COLUMNS (NO AUTO INCREMENT)", personNoAI.InsertColumns(),
+	test_utils.CompareStringArray(t, "GET INSERT COLUMNS (NO AUTO INCREMENT)", personNoAI.InsertColumns(),
 		[]string{"createdAt", "updatedAt", "id", "fullName", "birthDate", "NickName"})
-}
-
-func compareStringArray(t *testing.T, expectation string, actual, expected []string) {
-	s1 := strings.Join(actual, ", ")
-	s2 := strings.Join(expected, ", ")
-
-	if s1 != s2 {
-		t.Errorf("%s: FAILED\n  > got different values: %s", expectation, s1)
-	} else {
-		t.Logf("%s: PASSED", expectation)
-	}
-}
-
-func compareString(t *testing.T, expectation string, actual, expected string) {
-	if actual != expected {
-		t.Errorf("%s: FAILED\n  > got different values: %s", expectation, actual)
-	} else {
-		t.Logf("%s: PASSED", expectation)
-	}
-}
-
-func compareBoolean(t *testing.T, expectation string, actual, expected bool) {
-	if actual != expected {
-		t.Errorf("%s: FAILED\n  > got different values: %t", expectation, actual)
-	} else {
-		t.Logf("%s: PASSED", expectation)
-	}
 }
