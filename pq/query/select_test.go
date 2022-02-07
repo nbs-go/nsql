@@ -110,14 +110,14 @@ func TestSelectBasicQuery(t *testing.T) {
 	testSelectBuilder(t, "SELECT WITH WHERE BY PK",
 		Select(opt.Columns("*")).
 			From(person).
-			Where(Equal(person, person.PrimaryKey)),
+			Where(Equal(person, person.PrimaryKey())),
 		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person" WHERE "Person"."id" = ?`,
 	)
 
 	testSelectBuilder(t, "SELECT WITH WHERE AND",
 		Select(opt.Columns("*")).
 			From(person, opt.As("p")).
-			Where(Equal(person, person.PrimaryKey), Equal(person, "fullName")),
+			Where(Equal(person, person.PrimaryKey()), Equal(person, "fullName")),
 		`SELECT "p"."createdAt", "p"."updatedAt", "p"."id", "p"."fullName" FROM "Person" AS "p" WHERE "p"."id" = ? AND "p"."fullName" = ?`,
 	)
 
@@ -257,11 +257,11 @@ func TestSelectJoin(t *testing.T) {
 	)
 }
 
-func testSelectBuilder(t *testing.T, name string, b *SelectBuilder, expected string) {
+func testSelectBuilder(t *testing.T, expectation string, b *SelectBuilder, expected string) {
 	actual := b.Build()
 	if actual != expected {
-		t.Errorf("%s: FAILED\n  > got different generated query. Query = %s", name, actual)
+		t.Errorf("%s: FAILED\n  > got different generated query. Query = %s", expectation, actual)
 	} else {
-		t.Logf("%s: PASSED", name)
+		t.Logf("%s: PASSED", expectation)
 	}
 }
