@@ -42,9 +42,40 @@ func newWhereComparisonWriter(s *schema.Schema, col string, operator op.Operator
 	}
 }
 
+//func newWhereNamedCompareWriter(s *schema.Schema, col string, operator op.Operator, args []interface{}) *whereCompareWriter {
+//	if !s.IsColumnExist(col) {
+//		panic(fmt.Errorf(`"columnWriter "%s" is not available in table "%s"`, col, s.TableName()))
+//	}
+//
+//	// Evaluate options
+//	opts := opt.EvaluateOptions(args)
+//
+//	// Get column format
+//	colFmt, ok := opts.GetColumnFormat()
+//	if !ok {
+//		colFmt = query.ColumnOnly
+//	}
+//
+//	return &whereCompareWriter{
+//		ColumnWriter: &columnWriter{
+//			name:      col,
+//			tableName: s.TableName(),
+//			format:    colFmt,
+//		},
+//		op: operator,
+//		variable: &namedVar{
+//			column: col,
+//		},
+//	}
+//}
+
 func Equal(s *schema.Schema, col string, args ...interface{}) *whereCompareWriter {
 	return newWhereComparisonWriter(s, col, op.Equal, args)
 }
+
+//func EqualNamed(s *schema.Schema, col string, args ...interface{}) *whereCompareWriter {
+//	return newWhereNamedCompareWriter(s, col, op.Equal, args)
+//}
 
 func NotEqual(s *schema.Schema, col string, args ...interface{}) *whereCompareWriter {
 	return newWhereComparisonWriter(s, col, op.NotEqual, args)

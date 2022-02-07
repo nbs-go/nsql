@@ -17,3 +17,11 @@ type inBindVar struct{}
 func (b *inBindVar) VariableQuery() string {
 	return "(?)"
 }
+
+type namedVar struct {
+	column string
+}
+
+func (v *namedVar) VariableQuery() string {
+	return ":" + v.column
+}

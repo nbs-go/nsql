@@ -84,6 +84,8 @@ func writeColumn(tableName string, name string, format query.ColumnFormat) strin
 		return fmt.Sprintf(`"%s"."%s"`, tableName, name)
 	case query.SelectJoinColumn:
 		return fmt.Sprintf(`"%s"."%s" AS "%s.%s"`, tableName, name, tableName, name)
+	case query.ColumnOnly:
+		return fmt.Sprintf(`"%s"`, name)
 	}
 	return ""
 }

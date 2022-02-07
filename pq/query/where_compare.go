@@ -16,6 +16,10 @@ func (w *whereCompareWriter) GetVariable() query.VariableWriter {
 	return w.variable
 }
 
+func (w *whereCompareWriter) SetVariable(v query.VariableWriter) {
+	w.variable = v
+}
+
 func (w *whereCompareWriter) WhereQuery() string {
 	var operator string
 	switch w.op {

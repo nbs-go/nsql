@@ -9,13 +9,14 @@ import (
 // Built in option keys
 
 const (
-	SchemaKey        = "schema"
-	AsKey            = "as"
-	ColumnsKey       = "columns"
-	SortDirectionKey = "sortDirection"
-	CountKey         = "count"
-	JoinMethodKey    = "joinMethod"
-	VariableKey      = "variable"
+	SchemaKey         = "schema"
+	AsKey             = "as"
+	ColumnsKey        = "columns"
+	SortDirectionKey  = "sortDirection"
+	CountKey          = "count"
+	JoinMethodKey     = "joinMethod"
+	VariableKey       = "variable"
+	VariableFormatKey = "varFmt"
 )
 
 type Options struct {
@@ -63,6 +64,16 @@ func (o *Options) GetJoinMethod() op.JoinMethod {
 		return op.InnerJoin
 	}
 	return v.(op.JoinMethod)
+}
+
+func (o *Options) GetVariableFormat() (query.VariableFormat, bool) {
+	v, ok := o.KV[VariableFormatKey]
+	if !ok {
+		return query.NamedVar, false
+	}
+
+	vf, fOk := v.(query.VariableFormat)
+	return vf, fOk
 }
 
 func (o *Options) GetVariable(key string) query.VariableWriter {
@@ -156,6 +167,12 @@ func SortDirection(direction op.SortDirection) SetOptionFn {
 func JoinMethod(m op.JoinMethod) SetOptionFn {
 	return func(o *Options) {
 		o.KV[JoinMethodKey] = m
+	}
+}
+
+func VariableFormat(vf query.VariableFormat) SetOptionFn {
+	return func(o *Options) {
+		o.KV[VariableFormatKey] = vf
 	}
 }
 

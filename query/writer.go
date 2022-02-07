@@ -18,6 +18,10 @@ type TableGetter interface {
 	GetTableName() string
 }
 
+type ColumnGetter interface {
+	GetColumn() string
+}
+
 // SelectWriter must be implemented by part of query that will generate query in SELECT
 type SelectWriter interface {
 	SelectQuery() string
@@ -45,8 +49,9 @@ type OrderByWriter interface {
 }
 
 type WhereCompareWriter interface {
-	GetColumn() string
 	GetVariable() VariableWriter
+	SetVariable(v VariableWriter)
+	ColumnGetter
 	AliasSetter
 	SchemaSetter
 }
@@ -59,7 +64,7 @@ type WhereLogicWriter interface {
 type ColumnWriter interface {
 	ColumnQuery() string
 	SetFormat(format ColumnFormat)
-	GetColumn() string
+	ColumnGetter
 	AliasSetter
 	SchemaSetter
 }
