@@ -97,7 +97,7 @@ func (b *SelectBuilder) selectCount(column string, options *opt.Options) {
 			tableName: forceWriteFlag,
 		}
 		w.allColumn = true
-	} else {
+	} else if s != nil {
 		// If column is invalid or not in schema, then skip
 		if !s.IsColumnExist(column) {
 			return
@@ -107,6 +107,12 @@ func (b *SelectBuilder) selectCount(column string, options *opt.Options) {
 		w.ColumnWriter = &columnWriter{
 			name:      column,
 			tableName: s.TableName(),
+		}
+	} else {
+		// Set writer with FROM flag
+		w.ColumnWriter = &columnWriter{
+			name:      column,
+			tableName: fromTableFlag,
 		}
 	}
 
