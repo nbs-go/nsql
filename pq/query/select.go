@@ -91,7 +91,7 @@ func (b *SelectBuilder) selectCount(column string, options *opt.Options) {
 	w := selectCountWriter{as: as}
 
 	// If all column, then create
-	if column == "*" {
+	if column == AllColumns {
 		w.ColumnWriter = &columnWriter{
 			name:      column,
 			tableName: forceWriteFlag,
