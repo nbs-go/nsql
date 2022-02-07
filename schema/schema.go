@@ -6,11 +6,22 @@ import (
 )
 
 type Schema struct {
-	TableName     string
-	AutoIncrement bool
-	PrimaryKey    string
-	// Private
-	columns map[string]int
+	tableName     string
+	autoIncrement bool
+	primaryKey    string
+	columns       map[string]int
+}
+
+func (s *Schema) TableName() string {
+	return s.tableName
+}
+
+func (s *Schema) AutoIncrement() bool {
+	return s.autoIncrement
+}
+
+func (s *Schema) PrimaryKey() string {
+	return s.primaryKey
 }
 
 func (s *Schema) IsColumnExist(col string) bool {
@@ -18,7 +29,7 @@ func (s *Schema) IsColumnExist(col string) bool {
 	return ok
 }
 
-func (s *Schema) GetColumns() []string {
+func (s *Schema) Columns() []string {
 	cols := make([]string, len(s.columns))
 	for k, i := range s.columns {
 		cols[i] = k
@@ -54,23 +65,23 @@ func New(args ...OptionSetterFn) *Schema {
 	}
 
 	// If table name is not set, then panic
-	if s.TableName == "" && o.tableName == "" {
+	if s.tableName == "" && o.tableName == "" {
 		panic(fmt.Errorf("schema has no table name"))
 	}
 
 	// Set table name or override table name if already evaluated from model reference
 	if o.tableName != "" {
-		s.TableName = o.tableName
+		s.tableName = o.tableName
 	}
 
 	// Set other options
-	s.AutoIncrement = o.autoIncrement
+	s.autoIncrement = o.autoIncrement
 
 	// Check if primary key is defined in columns
 	if _, ok := s.columns[o.primaryKey]; !ok {
 		panic(fmt.Errorf("primary key is not defined in columns"))
 	}
-	s.PrimaryKey = o.primaryKey
+	s.primaryKey = o.primaryKey
 
 	return &s
 }
@@ -93,7 +104,7 @@ func evaluateModelRef(m interface{}) Schema {
 		panic(fmt.Errorf("modelRef must be a struct or pointer. Got %s", t.Name()))
 	}
 
-	s.TableName = evaluateTableName(t)
+	s.tableName = evaluateTableName(t)
 	s.columns = evaluateColumns(t)
 
 	return s
