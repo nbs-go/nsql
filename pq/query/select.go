@@ -71,6 +71,12 @@ func (b *SelectBuilder) Select(args ...interface{}) *SelectBuilder {
 				tableName: tableName,
 			})
 		}
+	} else {
+		// Treat as select all
+		b.fields = append(b.fields, &columnWriter{
+			name:      AllColumns,
+			tableName: tableName,
+		})
 	}
 
 	return b
