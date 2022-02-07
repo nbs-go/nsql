@@ -87,16 +87,15 @@ func (b *SelectBuilder) selectCount(column string, options *opt.Options) {
 	s := options.GetSchema()
 	as, _ := options.GetString(opt.AsKey)
 
-	// Init writer
-	w := selectCountWriter{as: as}
-
 	// If all column, then create
+	var allColumn bool
+	var cw query.ColumnWriter
 	if column == AllColumns {
-		w.ColumnWriter = &columnWriter{
+		cw = &columnWriter{
 			name:      column,
 			tableName: forceWriteFlag,
 		}
-		w.allColumn = true
+		allColumn = true
 	} else if s != nil {
 		// If column is invalid or not in schema, then skip
 		if !s.IsColumnExist(column) {
@@ -104,17 +103,19 @@ func (b *SelectBuilder) selectCount(column string, options *opt.Options) {
 		}
 
 		// Set writer
-		w.ColumnWriter = &columnWriter{
+		cw = &columnWriter{
 			name:      column,
 			tableName: s.TableName(),
 		}
 	} else {
 		// Set writer with FROM flag
-		w.ColumnWriter = &columnWriter{
+		cw = &columnWriter{
 			name:      column,
 			tableName: fromTableFlag,
 		}
 	}
+
+	w := selectCountWriter{ColumnWriter: cw, as: as, allColumn: allColumn}
 
 	// Set column to select fields
 	b.fields = append(b.fields, &w)
