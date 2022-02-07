@@ -31,3 +31,33 @@ func CompareBoolean(t *testing.T, expectation string, actual, expected bool) {
 		t.Logf("%s: PASSED", expectation)
 	}
 }
+
+func CompareInt(t *testing.T, expectation string, actual, expected int) {
+	if actual != expected {
+		t.Errorf("%s: FAILED\n  > got different values: %d", expectation, actual)
+	} else {
+		t.Logf("%s: PASSED", expectation)
+	}
+}
+
+func RecoverPanic(t *testing.T, expectation string, errStr string) func() {
+	return func() {
+		r := recover()
+		if r == nil {
+			t.Errorf("%s: FAILED\n  > code did not panic", expectation)
+			return
+		}
+
+		err, ok := r.(error)
+		if !ok {
+			t.Errorf("%s: FAILED\n  > unknown recovered value: %v", expectation, r)
+			return
+		}
+
+		if err.Error() != errStr {
+			t.Errorf("%s: FAILED\n  > got different error: %v", expectation, err)
+		} else {
+			t.Logf("%s: PASSED", expectation)
+		}
+	}
+}

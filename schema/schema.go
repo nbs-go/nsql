@@ -165,8 +165,6 @@ func evaluateColumns(t reflect.Type) map[string]int {
 			case reflect.Ptr:
 				// Get struct type
 				et = et.Elem()
-			default:
-				panic(fmt.Errorf("embedded field must be a struct or ptr. Got %s", et.Name()))
 			}
 
 			// Get columns from embedded struct

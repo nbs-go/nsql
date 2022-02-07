@@ -89,6 +89,12 @@ func TestManual(t *testing.T) {
 
 	// Test #3
 	test_utils.CompareBoolean(t, "SAME AUTO INCREMENT", sManual.AutoIncrement(), sModelRef.AutoIncrement())
+
+	// Test #4
+	test_utils.CompareBoolean(t, "DID NOT HAVE COLUMN", sManual.IsColumnExist("age"), false)
+
+	// Test #5
+	test_utils.CompareInt(t, "HAVE SAME COLUMN COUNT", sManual.CountColumns(), sModelRef.CountColumns())
 }
 
 func TestCustomPK(t *testing.T) {
@@ -123,4 +129,24 @@ func TestGetColumns(t *testing.T) {
 	personNoAI := New(FromModelRef(new(Person)), AutoIncrement(false))
 	test_utils.CompareStringArray(t, "GET INSERT COLUMNS (NO AUTO INCREMENT)", personNoAI.InsertColumns(),
 		[]string{"createdAt", "updatedAt", "id", "fullName", "birthDate", "NickName"})
+}
+
+func TestPanicModelRef(t *testing.T) {
+	defer test_utils.RecoverPanic(t, "INVALID MODEL REF", "modelRef must be a struct or pointer. Got string")()
+	New(FromModelRef(""))
+}
+
+func TestPanicNoColumns(t *testing.T) {
+	defer test_utils.RecoverPanic(t, "NO COLUMNS", "schema has no columns")()
+	New(TableName("Customer"))
+}
+
+func TestPanicNoTableName(t *testing.T) {
+	defer test_utils.RecoverPanic(t, "NO TABLE NAME", "schema has no table name")()
+	New(Columns("id", "name"))
+}
+
+func TestPanicNoPrimaryKey(t *testing.T) {
+	defer test_utils.RecoverPanic(t, "NO PRIMARY KEY", "primary key is not defined in columns")()
+	New(TableName("Customer"), Columns("createdAt", "name"))
 }
