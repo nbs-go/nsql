@@ -21,6 +21,11 @@ type tableWriter struct {
 }
 
 func (s *tableWriter) Join(j query.JoinWriter) {
+	// Set join index
+	idx := len(s.joints)
+	j.SetIndex(idx)
+
+	// Add joints
 	s.joints[j.GetTableName()] = j
 }
 
@@ -41,10 +46,8 @@ func (s *tableWriter) FromQuery() string {
 	}
 
 	jointQueries := make([]string, jointCount)
-	i := 0
 	for _, jw := range s.joints {
-		jointQueries[i] = jw.JoinQuery()
-		i++
+		jointQueries[jw.GetIndex()] = jw.JoinQuery()
 	}
 	join := strings.Join(jointQueries, " ")
 

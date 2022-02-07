@@ -71,6 +71,8 @@ type Expander interface {
 type JoinWriter interface {
 	JoinQuery() string
 	GetTableName() string
+	GetIndex() int
+	SetIndex(s int)
 }
 
 type VariableWriter interface {

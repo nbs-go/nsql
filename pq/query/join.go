@@ -10,6 +10,15 @@ type joinWriter struct {
 	method      op.JoinMethod
 	table       *query.Table
 	onCondition query.WhereWriter
+	index       int
+}
+
+func (j *joinWriter) GetIndex() int {
+	return j.index
+}
+
+func (j *joinWriter) SetIndex(n int) {
+	j.index = n
 }
 
 func (j *joinWriter) GetTableName() string {
