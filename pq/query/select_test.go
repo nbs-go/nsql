@@ -178,6 +178,14 @@ func TestSelectCount(t *testing.T) {
 	)
 }
 
+//func TestIsExists(t *testing.T) {
+//	testSelectBuilder(t, "IS EXISTS",
+//		Select().
+//			From(person).Where(Like(person, "fullName")),
+//		`SELECT COUNT("Person"."id") > 0 AS "isExists" FROM "Person" WHERE "Person"."fullName" LIKE ?`,
+//	)
+//}
+
 func TestSelectJoin(t *testing.T) {
 	testSelectBuilder(t, "INNER JOIN 2 TABLE",
 		Select(opt.Columns("*")).
