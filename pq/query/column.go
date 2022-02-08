@@ -7,6 +7,63 @@ import (
 	"github.com/nbs-go/nsql/schema"
 )
 
+func Column(col string, args ...interface{}) *columnWriter {
+	// Evaluate options
+	opts := opt.EvaluateOptions(args)
+
+	// Get tableName
+	s := opts.GetSchema()
+	var tableName string
+	if s == nil {
+		tableName = fromTableFlag
+	} else {
+		tableName = s.TableName()
+	}
+
+	// Get format
+	format, ok := opts.GetColumnFormat()
+	if !ok {
+		format = query.NonAmbiguousColumn
+	}
+
+	return &columnWriter{
+		name:      col,
+		tableName: tableName,
+		format:    format,
+	}
+}
+
+func Columns(args ...interface{}) opt.SetOptionFn {
+	return func(o *opt.Options) {
+		// Init columns containers
+		var cols []string
+
+		// Evaluate arguments
+		optCopy := opt.NewOptions()
+		for _, v := range args {
+			switch cv := v.(type) {
+			case opt.SetOptionFn:
+				cv(optCopy)
+			case string:
+				cols = append(cols, cv)
+			}
+		}
+
+		// If no columns, then skip
+		if len(cols) == 0 {
+			return
+		}
+
+		// Copy value to kv
+		for k, v := range optCopy.KV {
+			o.KV[k] = v
+		}
+
+		// Set columns value
+		o.KV[opt.ColumnsKey] = cols
+	}
+}
+
 // columnWriter implements query.SelectWriter for a single columnWriter
 type columnWriter struct {
 	name      string

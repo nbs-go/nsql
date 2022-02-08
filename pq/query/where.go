@@ -10,11 +10,7 @@ import (
 
 // whereCompareWriter
 
-func newWhereComparisonWriter(s *schema.Schema, col string, operator op.Operator, args []interface{}) *whereCompareWriter {
-	if !s.IsColumnExist(col) {
-		panic(fmt.Errorf(`"columnWriter "%s" is not available in table "%s"`, col, s.TableName()))
-	}
-
+func newWhereComparisonWriter(col query.ColumnWriter, operator op.Operator, args []interface{}) *whereCompareWriter {
 	opts := opt.EvaluateOptions(args)
 
 	// Get variable writer
@@ -33,100 +29,66 @@ func newWhereComparisonWriter(s *schema.Schema, col string, operator op.Operator
 	}
 
 	return &whereCompareWriter{
-		ColumnWriter: &columnWriter{
-			name:      col,
-			tableName: s.TableName(),
-		},
-		op:       operator,
-		variable: v,
+		ColumnWriter: col,
+		op:           operator,
+		variable:     v,
 	}
 }
 
-//func newWhereNamedCompareWriter(s *schema.Schema, col string, operator op.Operator, args []interface{}) *whereCompareWriter {
-//	if !s.IsColumnExist(col) {
-//		panic(fmt.Errorf(`"columnWriter "%s" is not available in table "%s"`, col, s.TableName()))
-//	}
-//
-//	// Evaluate options
-//	opts := opt.EvaluateOptions(args)
-//
-//	// Get column format
-//	colFmt, ok := opts.GetColumnFormat()
-//	if !ok {
-//		colFmt = query.ColumnOnly
-//	}
-//
-//	return &whereCompareWriter{
-//		ColumnWriter: &columnWriter{
-//			name:      col,
-//			tableName: s.TableName(),
-//			format:    colFmt,
-//		},
-//		op: operator,
-//		variable: &namedVar{
-//			column: col,
-//		},
-//	}
-//}
-
-func Equal(s *schema.Schema, col string, args ...interface{}) *whereCompareWriter {
-	return newWhereComparisonWriter(s, col, op.Equal, args)
+func Equal(col query.ColumnWriter, args ...interface{}) *whereCompareWriter {
+	return newWhereComparisonWriter(col, op.Equal, args)
 }
 
-//func EqualNamed(s *schema.Schema, col string, args ...interface{}) *whereCompareWriter {
-//	return newWhereNamedCompareWriter(s, col, op.Equal, args)
-//}
-
-func NotEqual(s *schema.Schema, col string, args ...interface{}) *whereCompareWriter {
-	return newWhereComparisonWriter(s, col, op.NotEqual, args)
+func NotEqual(col query.ColumnWriter, args ...interface{}) *whereCompareWriter {
+	return newWhereComparisonWriter(col, op.NotEqual, args)
 }
 
-func GreaterThan(s *schema.Schema, col string, args ...interface{}) *whereCompareWriter {
-	return newWhereComparisonWriter(s, col, op.GreaterThan, args)
+func GreaterThan(col query.ColumnWriter, args ...interface{}) *whereCompareWriter {
+	return newWhereComparisonWriter(col, op.GreaterThan, args)
 }
 
-func GreaterThanEqual(s *schema.Schema, col string, args ...interface{}) *whereCompareWriter {
-	return newWhereComparisonWriter(s, col, op.GreaterThanEqual, args)
+func GreaterThanEqual(col query.ColumnWriter, args ...interface{}) *whereCompareWriter {
+	return newWhereComparisonWriter(col, op.GreaterThanEqual, args)
 }
 
-func LessThan(s *schema.Schema, col string, args ...interface{}) *whereCompareWriter {
-	return newWhereComparisonWriter(s, col, op.LessThan, args)
+func LessThan(col query.ColumnWriter, args ...interface{}) *whereCompareWriter {
+	return newWhereComparisonWriter(col, op.LessThan, args)
 }
 
-func LessThanEqual(s *schema.Schema, col string, args ...interface{}) *whereCompareWriter {
-	return newWhereComparisonWriter(s, col, op.LessThanEqual, args)
+func LessThanEqual(col query.ColumnWriter, args ...interface{}) *whereCompareWriter {
+	return newWhereComparisonWriter(col, op.LessThanEqual, args)
 }
 
-func Like(s *schema.Schema, col string, args ...interface{}) *whereCompareWriter {
-	return newWhereComparisonWriter(s, col, op.Like, args)
+func Like(col query.ColumnWriter, args ...interface{}) *whereCompareWriter {
+	return newWhereComparisonWriter(col, op.Like, args)
 }
 
-func NotLike(s *schema.Schema, col string, args ...interface{}) *whereCompareWriter {
-	return newWhereComparisonWriter(s, col, op.NotLike, args)
+func NotLike(col query.ColumnWriter, args ...interface{}) *whereCompareWriter {
+	return newWhereComparisonWriter(col, op.NotLike, args)
 }
 
-func ILike(s *schema.Schema, col string, args ...interface{}) *whereCompareWriter {
-	return newWhereComparisonWriter(s, col, op.ILike, args)
+func ILike(col query.ColumnWriter, args ...interface{}) *whereCompareWriter {
+	return newWhereComparisonWriter(col, op.ILike, args)
 }
 
-func NotILike(s *schema.Schema, col string, args ...interface{}) *whereCompareWriter {
-	return newWhereComparisonWriter(s, col, op.NotILike, args)
+func NotILike(col query.ColumnWriter, args ...interface{}) *whereCompareWriter {
+	return newWhereComparisonWriter(col, op.NotILike, args)
 }
 
-func Between(s *schema.Schema, col string, args ...interface{}) *whereCompareWriter {
-	return newWhereComparisonWriter(s, col, op.Between, args)
+func Between(col query.ColumnWriter, args ...interface{}) *whereCompareWriter {
+	return newWhereComparisonWriter(col, op.Between, args)
 }
 
-func NotBetween(s *schema.Schema, col string, args ...interface{}) *whereCompareWriter {
-	return newWhereComparisonWriter(s, col, op.NotBetween, args)
+func NotBetween(col query.ColumnWriter, args ...interface{}) *whereCompareWriter {
+	return newWhereComparisonWriter(col, op.NotBetween, args)
 }
 
-func In(s *schema.Schema, col string, args ...interface{}) *whereCompareWriter {
-	return newWhereComparisonWriter(s, col, op.In, args)
+func In(col query.ColumnWriter, args ...interface{}) *whereCompareWriter {
+	return newWhereComparisonWriter(col, op.In, args)
 }
 
-func NotIn(s *schema.Schema, col string, args ...interface{}) *whereCompareWriter {
-	return newWhereComparisonWriter(s, col, op.NotIn, args)
+func NotIn(col query.ColumnWriter, args ...interface{}) *whereCompareWriter {
+	return newWhereComparisonWriter(col, op.NotIn, args)
 }
 
 // whereLogicWriter

@@ -32,7 +32,7 @@ func (b *UpdateBuilder) Build(args ...interface{}) string {
 	// Set variable format in conditions
 	if b.where == nil {
 		// Set where to id
-		b.where = Equal(b.schema, b.schema.PrimaryKey())
+		b.where = Equal(Column(b.schema.PrimaryKey(), b.schema))
 	}
 
 	// Set format in conditions

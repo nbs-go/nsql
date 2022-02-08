@@ -37,8 +37,8 @@ func TestUpdate(t *testing.T) {
 		Update(s, "status").
 			Where(
 				And(
-					Equal(s, "id"),
-					Equal(s, "version"),
+					Equal(Column("id")),
+					Equal(Column("version")),
 				),
 			).
 			Build(),
@@ -50,8 +50,8 @@ func TestUpdate(t *testing.T) {
 		Update(s, "status").
 			Where(
 				And(
-					Equal(s, "id"),
-					Equal(s, "version"),
+					Equal(Column("id")),
+					Equal(Column("version")),
 				),
 			).
 			Build(opt.VariableFormat(query.BindVar)),

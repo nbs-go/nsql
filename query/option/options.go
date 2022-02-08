@@ -17,6 +17,7 @@ const (
 	JoinMethodKey     = "joinMethod"
 	VariableKey       = "variable"
 	VariableFormatKey = "varFmt"
+	ColumnFormatKey   = "columnFmt"
 )
 
 type Options struct {
@@ -69,11 +70,21 @@ func (o *Options) GetJoinMethod() op.JoinMethod {
 func (o *Options) GetVariableFormat() (query.VariableFormat, bool) {
 	v, ok := o.KV[VariableFormatKey]
 	if !ok {
-		return query.NamedVar, false
+		return 0, false
 	}
 
 	vf, fOk := v.(query.VariableFormat)
 	return vf, fOk
+}
+
+func (o *Options) GetColumnFormat() (query.ColumnFormat, bool) {
+	v, ok := o.KV[ColumnFormatKey]
+	if !ok {
+		return 0, false
+	}
+
+	f, fOk := v.(query.ColumnFormat)
+	return f, fOk
 }
 
 func (o *Options) GetVariable(key string) query.VariableWriter {
@@ -127,37 +138,6 @@ func Count(col string, args ...interface{}) SetOptionFn {
 	}
 }
 
-func Columns(args ...interface{}) SetOptionFn {
-	return func(o *Options) {
-		// Init columns containers
-		var cols []string
-
-		// Evaluate arguments
-		optCopy := NewOptions()
-		for _, v := range args {
-			switch cv := v.(type) {
-			case SetOptionFn:
-				cv(optCopy)
-			case string:
-				cols = append(cols, cv)
-			}
-		}
-
-		// If no columns, then skip
-		if len(cols) == 0 {
-			return
-		}
-
-		// Copy value to kv
-		for k, v := range optCopy.KV {
-			o.KV[k] = v
-		}
-
-		// Set columns value
-		o.KV[ColumnsKey] = cols
-	}
-}
-
 func SortDirection(direction op.SortDirection) SetOptionFn {
 	return func(o *Options) {
 		o.KV[SortDirectionKey] = direction
@@ -173,6 +153,12 @@ func JoinMethod(m op.JoinMethod) SetOptionFn {
 func VariableFormat(vf query.VariableFormat) SetOptionFn {
 	return func(o *Options) {
 		o.KV[VariableFormatKey] = vf
+	}
+}
+
+func ColumnFormat(f query.ColumnFormat) SetOptionFn {
+	return func(o *Options) {
+		o.KV[ColumnFormatKey] = f
 	}
 }
 

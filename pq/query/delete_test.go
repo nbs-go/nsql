@@ -21,8 +21,8 @@ func TestDelete(t *testing.T) {
 	test_utils.CompareString(t, "DELETE BY MULTIPLE CONDITION",
 		Delete(s).Where(
 			And(
-				Equal(s, "id"),
-				Equal(s, "version"),
+				Equal(Column("id")),
+				Equal(Column("version")),
 			),
 		).Build(),
 		`DELETE FROM "Transaction" WHERE "id" = ? AND "version" = ?`)
@@ -31,8 +31,8 @@ func TestDelete(t *testing.T) {
 	test_utils.CompareString(t, "DELETE BY MULTIPLE CONDITION (NAMED VAR)",
 		Delete(s).Where(
 			And(
-				Equal(s, "id"),
-				Equal(s, "version"),
+				Equal(Column("id")),
+				Equal(Column("version")),
 			),
 		).Build(opt.VariableFormat(query.NamedVar)),
 		`DELETE FROM "Transaction" WHERE "id" = :id AND "version" = :version`)
