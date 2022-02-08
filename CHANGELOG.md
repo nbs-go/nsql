@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1
+
+- [FIXED] Fix isExists query in Schema builder
+
 ## 0.1.0
 
 - [ADDED] Add build IsExists query for schema
