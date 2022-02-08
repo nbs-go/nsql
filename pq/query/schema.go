@@ -43,6 +43,6 @@ func (s *SchemaBuilder) Count(where query.WhereWriter) string {
 }
 
 func (s *SchemaBuilder) IsExists(where query.WhereWriter) string {
-	return Select(GreaterThan(Count(s.schema.PrimaryKey()), IntVar(0))).
+	return Select(GreaterThan(Count(s.schema.PrimaryKey()), IntVar(0), opt.As("isExists"))).
 		From(s.schema).Where(where).Build()
 }
