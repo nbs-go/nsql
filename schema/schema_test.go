@@ -154,6 +154,6 @@ func TestPanicNoPrimaryKey(t *testing.T) {
 func TestFilterColumns(t *testing.T) {
 	s := New(FromModelRef(Person{}))
 	test_utils.CompareStringArray(t, "FILTER COLUMNS",
-		s.FilterColumns("id", "fullName", "age"),
+		s.Filter("id", "fullName", "age"),
 		[]string{"id", "fullName"})
 }

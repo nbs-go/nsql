@@ -63,7 +63,7 @@ func (s *Schema) CountColumns() int {
 	return len(s.columns)
 }
 
-func (s *Schema) FilterColumns(column1 string, columnN ...string) []string {
+func (s *Schema) Filter(column1 string, columnN ...string) []string {
 	// Combine columns
 	inColumns := append([]string{column1}, columnN...)
 
