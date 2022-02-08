@@ -9,14 +9,18 @@ import (
 	"strings"
 )
 
-func Select(args ...interface{}) *SelectBuilder {
+func Select(column1 query.SelectWriter, columnN ...query.SelectWriter) *SelectBuilder {
 	b := SelectBuilder{
 		fields:   []query.SelectWriter{},
 		orderBys: []query.OrderByWriter{},
 		tables:   map[string]query.Table{},
 	}
 
-	b.Select(args...)
+	// Merge columns
+	columns := append([]query.SelectWriter{column1}, columnN...)
+
+	// Set to columns to selected fields
+	b.fields = columns
 
 	return &b
 }
@@ -29,96 +33,6 @@ type SelectBuilder struct {
 	limit    *int
 	skip     *int
 	tables   map[string]query.Table
-}
-
-func (b *SelectBuilder) Select(args ...interface{}) *SelectBuilder {
-	// Evaluate options
-	opts := opt.EvaluateOptions(args)
-
-	// Check if select option
-	if countCol, ok := opts.GetString(opt.CountKey); ok && countCol != "" {
-		b.selectCount(countCol, opts)
-		return b
-	}
-
-	// Get table columnSchemaWriter
-	var tableName string
-	s := opts.GetSchema()
-
-	if s == nil {
-		// If schema not set, then will set selected fields using table that is defined in "FROM"
-		tableName = fromTableFlag
-	} else {
-		tableName = s.TableName()
-	}
-
-	// Get columnSchemaWriter
-	inputColumns := opts.GetStringArray(opt.ColumnsKey)
-
-	// If input has columnSchemaWriter
-	if count := len(inputColumns); count > 0 {
-		// If all columnSchemaWriter is set, then add single columnWriter
-		if inputColumns[0] == AllColumns {
-			b.fields = append(b.fields, &columnWriter{
-				name:      inputColumns[0],
-				tableName: tableName,
-			})
-		} else {
-			// Set columnSchemaWriter as schema columnSchemaWriter
-			b.fields = append(b.fields, &columnSchemaWriter{
-				schema:    s,
-				columns:   inputColumns,
-				tableName: tableName,
-			})
-		}
-	} else {
-		// Treat as select all
-		b.fields = append(b.fields, &columnWriter{
-			name:      AllColumns,
-			tableName: tableName,
-		})
-	}
-
-	return b
-}
-
-func (b *SelectBuilder) selectCount(column string, options *opt.Options) {
-	// Get options
-	s := options.GetSchema()
-	as, _ := options.GetString(opt.AsKey)
-
-	// If all column, then create
-	var allColumn bool
-	var cw query.ColumnWriter
-	if column == AllColumns {
-		cw = &columnWriter{
-			name:      column,
-			tableName: forceWriteFlag,
-		}
-		allColumn = true
-	} else if s != nil {
-		// If column is invalid or not in schema, then skip
-		if !s.IsColumnExist(column) {
-			return
-		}
-
-		// Set writer
-		cw = &columnWriter{
-			name:      column,
-			tableName: s.TableName(),
-		}
-	} else {
-		// Set writer with FROM flag
-		cw = &columnWriter{
-			name:      column,
-			tableName: fromTableFlag,
-		}
-	}
-
-	w := selectCountWriter{ColumnWriter: cw, as: as, allColumn: allColumn}
-
-	// Set column to select fields
-	b.fields = append(b.fields, &w)
 }
 
 func (b *SelectBuilder) From(s *schema.Schema, args ...interface{}) *SelectBuilder {
@@ -143,6 +57,9 @@ func (b *SelectBuilder) Join(s *schema.Schema, onCondition query.WhereWriter, ar
 	opts := opt.EvaluateOptions(args)
 	joinMethod := opts.GetJoinMethod()
 	as, _ := opts.GetString(opt.AsKey)
+
+	// Resolve fromTableFlag reference
+	resolveFromTableFlag(onCondition, b.getFromSchema())
 
 	// Resolve joinTableFlag reference
 	resolveJoinTableFlag(onCondition, s)

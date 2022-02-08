@@ -11,9 +11,7 @@ import (
 const (
 	SchemaKey         = "schema"
 	AsKey             = "as"
-	ColumnsKey        = "columns"
 	SortDirectionKey  = "sortDirection"
-	CountKey          = "count"
 	JoinMethodKey     = "joinMethod"
 	VariableKey       = "variable"
 	VariableFormatKey = "varFmt"
@@ -114,27 +112,6 @@ func Schema(s *schema.Schema) SetOptionFn {
 func As(as string) SetOptionFn {
 	return func(o *Options) {
 		o.KV[AsKey] = as
-	}
-}
-
-func Count(col string, args ...interface{}) SetOptionFn {
-	return func(o *Options) {
-		// Evaluate arguments
-		optCopy := NewOptions()
-		for _, v := range args {
-			switch cv := v.(type) {
-			case SetOptionFn:
-				cv(optCopy)
-			}
-		}
-
-		// Copy value to kv
-		for k, v := range optCopy.KV {
-			o.KV[k] = v
-		}
-
-		// Set count column
-		o.KV[CountKey] = col
 	}
 }
 

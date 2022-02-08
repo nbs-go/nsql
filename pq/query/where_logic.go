@@ -23,13 +23,10 @@ func (w *whereLogicWriter) WhereQuery() string {
 	}
 
 	var separator string
-	switch w.op {
-	case op.And:
-		separator = " AND "
-	case op.Or:
+	if w.op == op.Or {
 		separator = " OR "
-	default:
-		return ""
+	} else {
+		separator = " AND "
 	}
 
 	var conditions []string

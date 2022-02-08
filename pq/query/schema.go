@@ -21,7 +21,7 @@ func (s *SchemaBuilder) Schema() *schema.Schema {
 }
 
 func (s *SchemaBuilder) FindByPK() string {
-	return Select().From(s.schema).Where(Equal(Column(s.schema.PrimaryKey()))).Build()
+	return Select(Column("*")).From(s.schema).Where(Equal(Column(s.schema.PrimaryKey()))).Build()
 }
 
 func (s *SchemaBuilder) Insert() string {
@@ -39,5 +39,5 @@ func (s *SchemaBuilder) Delete() string {
 }
 
 func (s *SchemaBuilder) Count(where query.WhereWriter) string {
-	return Select(opt.Count(s.schema.PrimaryKey(), opt.As("count"))).From(s.schema).Where(where).Build()
+	return Select(Count(s.schema.PrimaryKey(), opt.As("count"))).From(s.schema).Where(where).Build()
 }

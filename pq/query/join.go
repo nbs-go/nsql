@@ -31,14 +31,13 @@ func (j *joinWriter) JoinQuery() string {
 	switch j.method {
 	case op.InnerJoin:
 		method = "INNER JOIN"
-	case op.LeftJoin:
-		method = "LEFT JOIN"
 	case op.RightJoin:
 		method = "RIGHT JOIN"
 	case op.FullJoin:
 		method = "FULL OUTER JOIN"
 	default:
-		return ""
+		// Default to left join
+		method = "LEFT JOIN"
 	}
 
 	// Generate table name

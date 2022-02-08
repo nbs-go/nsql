@@ -17,8 +17,8 @@ type columnSchemaWriter struct {
 func (w *columnSchemaWriter) SetSchema(s *schema.Schema) {
 	w.schema = s
 	w.tableName = s.TableName()
-
 }
+
 func (w *columnSchemaWriter) GetTableName() string {
 	if w.schema != nil {
 		return w.schema.TableName()
@@ -27,11 +27,6 @@ func (w *columnSchemaWriter) GetTableName() string {
 }
 
 func (w *columnSchemaWriter) SelectQuery() string {
-	// Use schema table name if not set
-	if w.tableName == "" {
-		w.tableName = w.schema.TableName()
-	}
-
 	// Create query
 	var queries []string
 	for _, col := range w.columns {

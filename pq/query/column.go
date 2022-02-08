@@ -33,34 +33,46 @@ func Column(col string, args ...interface{}) *columnWriter {
 	}
 }
 
-func Columns(args ...interface{}) opt.SetOptionFn {
-	return func(o *opt.Options) {
-		// Init columns containers
-		var cols []string
+func Columns(column1, column2 string, args ...interface{}) *columnSchemaWriter {
+	// Init columns containers
+	var inColumns []string
 
-		// Evaluate arguments
-		optCopy := opt.NewOptions()
-		for _, v := range args {
-			switch cv := v.(type) {
-			case opt.SetOptionFn:
-				cv(optCopy)
-			case string:
-				cols = append(cols, cv)
-			}
+	// Evaluate arguments
+	optCopy := opt.NewOptions()
+	for _, v := range args {
+		switch cv := v.(type) {
+		case opt.SetOptionFn:
+			cv(optCopy)
+		case string:
+			inColumns = append(inColumns, cv)
 		}
+	}
 
-		// If no columns, then skip
-		if len(cols) == 0 {
-			return
-		}
+	// Get schema
+	s := optCopy.GetSchema()
+	var cols []string
+	var tableName string
+	if s == nil {
+		tableName = fromTableFlag
+		cols = append([]string{column1, column2}, inColumns...)
+	} else {
+		tableName = s.TableName()
+		inColumns = append([]string{column2}, inColumns...)
+		cols = s.Filter(column1, inColumns...)
+	}
 
-		// Copy value to kv
-		for k, v := range optCopy.KV {
-			o.KV[k] = v
-		}
+	// Get format
+	format, ok := optCopy.GetColumnFormat()
+	if !ok {
+		format = query.NonAmbiguousColumn
+	}
 
-		// Set columns value
-		o.KV[opt.ColumnsKey] = cols
+	// Create schema writer
+	return &columnSchemaWriter{
+		schema:    s,
+		columns:   cols,
+		tableName: tableName,
+		format:    format,
 	}
 }
 
@@ -93,11 +105,6 @@ func (w *columnWriter) Expand(args ...interface{}) query.SelectWriter {
 	// Get schema
 	opts := opt.EvaluateOptions(args)
 	s := opts.GetSchema()
-
-	// If not set, then skip
-	if s == nil {
-		return nil
-	}
 
 	// Expand to columnWriter schema
 	return &columnSchemaWriter{
@@ -137,12 +144,12 @@ func (w *columnWriter) SetFormat(format query.ColumnFormat) {
 
 func writeColumn(tableName string, name string, format query.ColumnFormat) string {
 	switch format {
-	case query.NonAmbiguousColumn:
-		return fmt.Sprintf(`"%s"."%s"`, tableName, name)
 	case query.SelectJoinColumn:
 		return fmt.Sprintf(`"%s"."%s" AS "%s.%s"`, tableName, name, tableName, name)
 	case query.ColumnOnly:
 		return fmt.Sprintf(`"%s"`, name)
+	default:
+		// If not set, treat as NonAmbiguous column
+		return fmt.Sprintf(`"%s"."%s"`, tableName, name)
 	}
-	return ""
 }
