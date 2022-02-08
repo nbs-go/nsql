@@ -63,6 +63,21 @@ func (s *Schema) CountColumns() int {
 	return len(s.columns)
 }
 
+func (s *Schema) FilterColumns(column1 string, columnN ...string) []string {
+	// Combine columns
+	inColumns := append([]string{column1}, columnN...)
+
+	// Filter
+	var columns []string
+	for _, col := range inColumns {
+		if s.IsColumnExist(col) {
+			columns = append(columns, col)
+		}
+	}
+
+	return columns
+}
+
 func New(args ...OptionSetterFn) *Schema {
 	// Evaluate options
 	o := evaluateSchemaOptions(args)

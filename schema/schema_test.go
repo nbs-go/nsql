@@ -150,3 +150,10 @@ func TestPanicNoPrimaryKey(t *testing.T) {
 	defer test_utils.RecoverPanic(t, "NO PRIMARY KEY", "primary key is not defined in columns")()
 	New(TableName("Customer"), Columns("createdAt", "name"))
 }
+
+func TestFilterColumns(t *testing.T) {
+	s := New(FromModelRef(Person{}))
+	test_utils.CompareStringArray(t, "FILTER COLUMNS",
+		s.FilterColumns("id", "fullName", "age"),
+		[]string{"id", "fullName"})
+}
