@@ -41,3 +41,8 @@ func (s *SchemaBuilder) Delete() string {
 func (s *SchemaBuilder) Count(where query.WhereWriter) string {
 	return Select(Count(s.schema.PrimaryKey(), opt.As("count"))).From(s.schema).Where(where).Build()
 }
+
+func (s *SchemaBuilder) IsExists(where query.WhereWriter) string {
+	return Select(GreaterThan(Count(s.schema.PrimaryKey()), IntVar(0))).
+		From(s.schema).Where(where).Build()
+}

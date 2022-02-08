@@ -38,4 +38,11 @@ func TestSchemaBuilder(t *testing.T) {
 	// Test #5
 	test_utils.CompareString(t, "COUNT", sb.Count(Like(Column("fullName"))),
 		`SELECT COUNT("Customer"."id") AS "count" FROM "Customer" WHERE "Customer"."fullName" LIKE ?`)
+
+	// Test #6
+	test_utils.CompareString(t, "IS EXISTS", sb.IsExists(Like(Column("fullName"))),
+		`SELECT COUNT("Customer"."id") > 0 AS "isExists" FROM "Customer" WHERE "Customer"."fullName" LIKE ?`)
+
+	// Test #6
+	test_utils.CompareString(t, "GET SCHEMA", sb.Schema().TableName(), s.TableName())
 }
