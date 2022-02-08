@@ -1,5 +1,10 @@
 package query
 
+import (
+	"fmt"
+	opt "github.com/nbs-go/nsql/query/option"
+)
+
 type bindVar struct{}
 
 func (b *bindVar) VariableQuery() string {
@@ -24,4 +29,18 @@ type namedVar struct {
 
 func (v *namedVar) VariableQuery() string {
 	return ":" + v.column
+}
+
+func IntVar(i int) opt.SetOptionFn {
+	return func(o *opt.Options) {
+		o.KV[opt.VariableKey] = &intVar{value: i}
+	}
+}
+
+type intVar struct {
+	value int
+}
+
+func (v *intVar) VariableQuery() string {
+	return fmt.Sprintf("%d", v.value)
 }

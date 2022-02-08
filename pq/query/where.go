@@ -28,10 +28,14 @@ func newWhereComparisonWriter(col query.ColumnWriter, operator op.Operator, args
 		}
 	}
 
+	// Get alias
+	as, _ := opts.GetString(opt.AsKey)
+
 	return &whereCompareWriter{
 		ColumnWriter: col,
 		op:           operator,
 		variable:     v,
+		as:           as,
 	}
 }
 

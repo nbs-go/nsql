@@ -53,14 +53,17 @@ func (s *selectCountWriter) IsAllColumns() bool {
 	return s.allColumn
 }
 
-func (s *selectCountWriter) SelectQuery() string {
-	var q string
-
+func (s *selectCountWriter) ColumnQuery() string {
 	if s.allColumn {
-		q = "COUNT(*)"
-	} else {
-		q = fmt.Sprintf(`COUNT(%s)`, s.ColumnQuery())
+		return "COUNT(*)"
 	}
+	// Print column
+	col := s.ColumnWriter.ColumnQuery()
+	return fmt.Sprintf(`COUNT(%s)`, col)
+}
+
+func (s *selectCountWriter) SelectQuery() string {
+	q := s.ColumnQuery()
 
 	// Set "as" query
 	if s.as != "" {

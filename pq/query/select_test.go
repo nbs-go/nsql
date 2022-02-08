@@ -4,6 +4,7 @@ import (
 	"github.com/nbs-go/nsql/query/op"
 	opt "github.com/nbs-go/nsql/query/option"
 	"github.com/nbs-go/nsql/schema"
+	"github.com/nbs-go/nsql/test_utils"
 	"testing"
 	"time"
 )
@@ -184,13 +185,26 @@ func TestSelectCount(t *testing.T) {
 	)
 }
 
-//func TestIsExists(t *testing.T) {
-//	testSelectBuilder(t, "IS EXISTS",
-//		Select().
-//			From(person).Where(Like(person, "fullName")),
-//		`SELECT COUNT("Person"."id") > 0 AS "isExists" FROM "Person" WHERE "Person"."fullName" LIKE ?`,
-//	)
-//}
+func TestPanicCount(t *testing.T) {
+	defer test_utils.RecoverPanic(t, "NO COLUMN DECLARE ON COUNT", `column "age" is not declared in schema "Person"`)()
+	Select(Count("age", opt.Schema(person))).From(person)
+}
+
+func TestEmptyWhere(t *testing.T) {
+	testSelectBuilder(t, "NIL WHERE",
+		Select(Column("*")).
+			From(person).Where(nil),
+		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person"`,
+	)
+}
+
+func TestIsExists(t *testing.T) {
+	testSelectBuilder(t, "COUNT BY ID COMPARE BY INT VALUE",
+		Select(GreaterThan(Count("id"), IntVar(0), opt.As("isExists"))).
+			From(person, opt.As("p")),
+		`SELECT COUNT("p"."id") > 0 AS "isExists" FROM "Person" AS "p"`,
+	)
+}
 
 func TestSelectJoin(t *testing.T) {
 	testSelectBuilder(t, "INNER JOIN 2 TABLE",

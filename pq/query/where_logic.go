@@ -17,11 +17,6 @@ func (w *whereLogicWriter) SetConditions(conditions []query.WhereWriter) {
 }
 
 func (w *whereLogicWriter) WhereQuery() string {
-	// If no conditions, then return empty string
-	if len(w.conditions) == 0 {
-		return ""
-	}
-
 	var separator string
 	if w.op == op.Or {
 		separator = " OR "
@@ -33,11 +28,6 @@ func (w *whereLogicWriter) WhereQuery() string {
 	for _, cw := range w.conditions {
 		// Create query
 		cq := cw.WhereQuery()
-
-		// If where query is empty, then skip
-		if cq == "" {
-			continue
-		}
 
 		// If condition is a logical, then add brackets
 		if _, ok := cw.(query.WhereLogicWriter); ok {

@@ -10,6 +10,21 @@ type whereCompareWriter struct {
 	query.ColumnWriter
 	op       op.Operator
 	variable query.VariableWriter
+	as       string
+}
+
+func (w *whereCompareWriter) SelectQuery() string {
+	q := w.WhereQuery()
+
+	if w.as != "" {
+		q += fmt.Sprintf(` AS "%s"`, w.as)
+	}
+
+	return q
+}
+
+func (w *whereCompareWriter) IsAllColumns() bool {
+	return false
 }
 
 func (w *whereCompareWriter) GetVariable() query.VariableWriter {
