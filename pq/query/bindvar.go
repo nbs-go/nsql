@@ -17,10 +17,24 @@ func (b *betweenBindVar) VariableQuery() string {
 	return "? AND ?"
 }
 
-type inBindVar struct{}
+type inBindVar struct {
+	argCount int
+}
 
 func (b *inBindVar) VariableQuery() string {
-	return "(?)"
+	switch b.argCount {
+	case 0:
+		panic(fmt.Errorf("invalid bindVar for IN query, does not have argument"))
+	case 1:
+		return "(?)"
+	}
+
+	// Write bind var query
+	q := "(?"
+	for i := 1; i < b.argCount; i++ {
+		q += ", ?"
+	}
+	return q + ")"
 }
 
 type namedVar struct {

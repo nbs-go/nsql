@@ -16,6 +16,7 @@ const (
 	VariableKey       = "variable"
 	VariableFormatKey = "varFmt"
 	ColumnFormatKey   = "columnFmt"
+	ArgCountKey       = "argCount"
 )
 
 type Options struct {

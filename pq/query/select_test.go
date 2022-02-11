@@ -138,8 +138,8 @@ func TestSelectBasicQuery(t *testing.T) {
 					ILike(Column("fullName")),
 					NotILike(Column("fullName")),
 					And(
-						In(Column("id")),
-						NotIn(Column("id")),
+						In(Column("id"), 2),
+						NotIn(Column("id"), 2),
 					),
 				),
 				And(
@@ -155,7 +155,7 @@ func TestSelectBasicQuery(t *testing.T) {
 					),
 				),
 			),
-		`SELECT "p"."createdAt", "p"."updatedAt", "p"."id", "p"."fullName" FROM "Person" AS "p" WHERE ("p"."fullName" LIKE ? OR "p"."fullName" NOT LIKE ? OR "p"."fullName" ILIKE ? OR "p"."fullName" NOT ILIKE ? OR ("p"."id" IN (?) AND "p"."id" NOT IN (?))) AND ("p"."id" = ? AND "p"."id" != ? AND "p"."id" < ? AND "p"."id" <= ? AND "p"."id" > ? AND "p"."id" >= ? AND ("p"."createdAt" BETWEEN ? AND ? OR "p"."updatedAt" NOT BETWEEN ? AND ?))`,
+		`SELECT "p"."createdAt", "p"."updatedAt", "p"."id", "p"."fullName" FROM "Person" AS "p" WHERE ("p"."fullName" LIKE ? OR "p"."fullName" NOT LIKE ? OR "p"."fullName" ILIKE ? OR "p"."fullName" NOT ILIKE ? OR ("p"."id" IN (?, ?) AND "p"."id" NOT IN (?, ?))) AND ("p"."id" = ? AND "p"."id" != ? AND "p"."id" < ? AND "p"."id" <= ? AND "p"."id" > ? AND "p"."id" >= ? AND ("p"."createdAt" BETWEEN ? AND ? OR "p"."updatedAt" NOT BETWEEN ? AND ?))`,
 	)
 }
 
@@ -286,5 +286,19 @@ func testSelectBuilder(t *testing.T, expectation string, b *SelectBuilder, expec
 		t.Errorf("%s: FAILED\n  > got different generated query. Query = %s", expectation, actual)
 	} else {
 		t.Logf("%s: PASSED", expectation)
+	}
+}
+
+func BenchmarkJoinManyToMany(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		Select(
+			Column("*"),
+			Column("*", opt.Schema(vehicleOwnership)),
+			Column("*", opt.Schema(vehicle)),
+		).
+			From(person, opt.As("p")).
+			Join(vehicleOwnership, Equal(Column("id"), On("personId")), opt.As("vo")).
+			Join(vehicle, Equal(Column("vehicleId", opt.Schema(vehicleOwnership)), On("id")), opt.As("v")).
+			Build()
 	}
 }

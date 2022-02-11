@@ -23,8 +23,30 @@ func newWhereComparisonWriter(col query.ColumnWriter, operator op.Operator, args
 			v = new(bindVar)
 		case op.Between, op.NotBetween:
 			v = new(betweenBindVar)
+		}
+	}
+
+	// Get alias
+	as, _ := opts.GetString(opt.AsKey)
+
+	return &whereCompareWriter{
+		ColumnWriter: col,
+		op:           operator,
+		variable:     v,
+		as:           as,
+	}
+}
+
+func newInWhereComparisonWriter(col query.ColumnWriter, argCount int, operator op.Operator, args []interface{}) *whereCompareWriter {
+	opts := opt.EvaluateOptions(args)
+
+	// Get variable writer
+	v := opts.GetVariable(opt.VariableKey)
+	if v == nil {
+		// Set default variable writer, by operator
+		switch operator {
 		case op.In, op.NotIn:
-			v = new(inBindVar)
+			v = &inBindVar{argCount: argCount}
 		}
 	}
 
@@ -87,12 +109,12 @@ func NotBetween(col query.ColumnWriter, args ...interface{}) *whereCompareWriter
 	return newWhereComparisonWriter(col, op.NotBetween, args)
 }
 
-func In(col query.ColumnWriter, args ...interface{}) *whereCompareWriter {
-	return newWhereComparisonWriter(col, op.In, args)
+func In(col query.ColumnWriter, argCount int, args ...interface{}) *whereCompareWriter {
+	return newInWhereComparisonWriter(col, argCount, op.In, args)
 }
 
-func NotIn(col query.ColumnWriter, args ...interface{}) *whereCompareWriter {
-	return newWhereComparisonWriter(col, op.NotIn, args)
+func NotIn(col query.ColumnWriter, argCount int, args ...interface{}) *whereCompareWriter {
+	return newInWhereComparisonWriter(col, argCount, op.NotIn, args)
 }
 
 // whereLogicWriter
