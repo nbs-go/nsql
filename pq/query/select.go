@@ -9,20 +9,21 @@ import (
 	"strings"
 )
 
-func Select(column1 nsql.SelectWriter, columnN ...nsql.SelectWriter) *SelectBuilder {
-	b := SelectBuilder{
+func newSelectBuilder() *SelectBuilder {
+	return &SelectBuilder{
 		fields:   []nsql.SelectWriter{},
 		orderBys: []nsql.OrderByWriter{},
 		tables:   map[string]nsql.Table{},
 	}
+}
 
 	// Merge columns
 	columns := append([]nsql.SelectWriter{column1}, columnN...)
 
-	// Set to columns to selected fields
-	b.fields = columns
-
-	return &b
+func From(s *schema.Schema, args ...interface{}) *SelectBuilder {
+	b := newSelectBuilder()
+	b.From(s, args)
+	return b
 }
 
 type SelectBuilder struct {

@@ -328,3 +328,17 @@ func BenchmarkJoinManyToMany(b *testing.B) {
 			Build()
 	}
 }
+
+func TestFromConstructor(t *testing.T) {
+	b := query.From(person)
+
+	test_utils.CompareString(t, "SELECT ALL",
+		b.Select(query.Column("*")).Build(),
+		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person"`,
+	)
+
+	test_utils.CompareString(t, "REPLACE SELECT COUNT ALL",
+		b.Select(query.Count("*")).Build(),
+		`SELECT COUNT(*) FROM "Person"`,
+	)
+}
