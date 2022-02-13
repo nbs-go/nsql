@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0
+
+- [ADDED] Add ResetOrderBy to clear orderBy queries
+- [ADDED] Add Select builder function
+- [ADDED] Add From query builder constructor
+
 ## 0.2.0
 
 - [ADDED] Add LikeFilter helper
