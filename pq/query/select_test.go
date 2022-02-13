@@ -394,3 +394,19 @@ func TestReusableWhereCondition(t *testing.T) {
 		`SELECT COUNT(*) FROM "Person" AS "p" WHERE "p"."createdAt" > ?`,
 	)
 }
+
+func TestResetLimitSkip(t *testing.T) {
+	b := query.From(person).Select(query.Column("*")).Skip(0).Limit(10)
+
+	test_utils.CompareString(t, "SELECT ALL WITH LIMIT AND SKIP",
+		b.Build(),
+		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person" LIMIT 10 OFFSET 0`,
+	)
+
+	b.ResetSkip().ResetLimit()
+
+	test_utils.CompareString(t, "SELECT ALL",
+		b.Build(),
+		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person"`,
+	)
+}
