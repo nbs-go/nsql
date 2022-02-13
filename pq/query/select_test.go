@@ -342,3 +342,37 @@ func TestFromConstructor(t *testing.T) {
 		`SELECT COUNT(*) FROM "Person"`,
 	)
 }
+
+func TestResetOrderBy(t *testing.T) {
+	b := query.From(person).Select(query.Column("*"))
+
+	test_utils.CompareString(t, "SELECT ALL",
+		b.OrderBy("createdAt").Build(),
+		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person" ORDER BY "Person"."createdAt" ASC`,
+	)
+
+	b.ResetOrderBy()
+
+	test_utils.CompareString(t, "REPLACE SELECT COUNT ALL",
+		b.OrderBy("updatedAt", option.SortDirection(op.Descending)).Build(),
+		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person" ORDER BY "Person"."updatedAt" DESC`,
+	)
+}
+
+func TestUndeclaredOrderByColumn(t *testing.T) {
+	b := query.Select(query.Column("*")).From(person).OrderBy("gender", option.Schema(person))
+
+	test_utils.CompareString(t, "NO ORDER BY",
+		b.Build(),
+		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person"`,
+	)
+}
+
+func TestUndeclaredWhereColumn(t *testing.T) {
+	b := query.Select(query.Column("*")).From(person).Where(query.Equal(query.Column("gender"), option.Schema(person)))
+
+	test_utils.CompareString(t, "NO ORDER BY",
+		b.Build(),
+		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person"`,
+	)
+}
