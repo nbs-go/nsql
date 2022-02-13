@@ -36,6 +36,10 @@ func (w *whereCompareWriter) SetVariable(v nsql.VariableWriter) {
 }
 
 func (w *whereCompareWriter) WhereQuery() string {
+	if w.GetTableName() == skipTableFlag {
+		return ""
+	}
+
 	var operator string
 	switch w.op {
 	case op.Equal:

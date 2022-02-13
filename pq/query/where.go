@@ -228,6 +228,11 @@ func setJoinTableAs(ww nsql.WhereWriter, joinTable *nsql.Table, tableRefs map[st
 func setJoinColumnTableAs(column nsql.ColumnWriter, joinTable *nsql.Table, tableRefs map[string]nsql.Table) {
 	// Get arguments
 	tableName := column.GetTableName()
+
+	if tableName == skipTableFlag {
+		return
+	}
+
 	col := column.GetColumn()
 
 	// Check in joinSchema
