@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.0
+
+- [ADDED] Add ResetSkip function
+- [ADDED] Add ResetLimit function
+
 ## 0.3.2
 
 - [ADDED] Separate tableAs in Column writers to fix column resolver after query has been build
