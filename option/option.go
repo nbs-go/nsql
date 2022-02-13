@@ -65,23 +65,23 @@ func (o *Options) GetJoinMethod() op.JoinMethod {
 	return v.(op.JoinMethod)
 }
 
-func (o *Options) GetVariableFormat() (nsql.VariableFormat, bool) {
+func (o *Options) GetVariableFormat() (op.VariableFormat, bool) {
 	v, ok := o.KV[VariableFormatKey]
 	if !ok {
 		return 0, false
 	}
 
-	vf, fOk := v.(nsql.VariableFormat)
+	vf, fOk := v.(op.VariableFormat)
 	return vf, fOk
 }
 
-func (o *Options) GetColumnFormat() (nsql.ColumnFormat, bool) {
+func (o *Options) GetColumnFormat() (op.ColumnFormat, bool) {
 	v, ok := o.KV[ColumnFormatKey]
 	if !ok {
 		return 0, false
 	}
 
-	f, fOk := v.(nsql.ColumnFormat)
+	f, fOk := v.(op.ColumnFormat)
 	return f, fOk
 }
 
@@ -127,13 +127,13 @@ func JoinMethod(m op.JoinMethod) SetOptionFn {
 	}
 }
 
-func VariableFormat(vf nsql.VariableFormat) SetOptionFn {
+func VariableFormat(vf op.VariableFormat) SetOptionFn {
 	return func(o *Options) {
 		o.KV[VariableFormatKey] = vf
 	}
 }
 
-func ColumnFormat(f nsql.ColumnFormat) SetOptionFn {
+func ColumnFormat(f op.ColumnFormat) SetOptionFn {
 	return func(o *Options) {
 		o.KV[ColumnFormatKey] = f
 	}

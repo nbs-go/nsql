@@ -3,6 +3,7 @@ package query
 import (
 	"fmt"
 	"github.com/nbs-go/nsql"
+	"github.com/nbs-go/nsql/op"
 	"github.com/nbs-go/nsql/option"
 )
 
@@ -72,4 +73,4 @@ func (s *selectCountWriter) SelectQuery() string {
 	return q
 }
 
-func (s *selectCountWriter) SetFormat(_ nsql.ColumnFormat) {}
+func (s *selectCountWriter) SetFormat(_ op.ColumnFormat) {}

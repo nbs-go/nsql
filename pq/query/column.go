@@ -3,6 +3,7 @@ package query
 import (
 	"fmt"
 	"github.com/nbs-go/nsql"
+	"github.com/nbs-go/nsql/op"
 	"github.com/nbs-go/nsql/option"
 	"github.com/nbs-go/nsql/schema"
 )
@@ -23,7 +24,7 @@ func Column(col string, args ...interface{}) *columnWriter {
 	// Get format
 	format, ok := opts.GetColumnFormat()
 	if !ok {
-		format = nsql.NonAmbiguousColumn
+		format = op.NonAmbiguousColumn
 	}
 
 	return &columnWriter{
@@ -64,7 +65,7 @@ func Columns(column1, column2 string, args ...interface{}) *columnSchemaWriter {
 	// Get format
 	format, ok := optCopy.GetColumnFormat()
 	if !ok {
-		format = nsql.NonAmbiguousColumn
+		format = op.NonAmbiguousColumn
 	}
 
 	// Create schema writer
@@ -80,7 +81,7 @@ func Columns(column1, column2 string, args ...interface{}) *columnSchemaWriter {
 type columnWriter struct {
 	name      string
 	tableName string
-	format    nsql.ColumnFormat
+	format    op.ColumnFormat
 }
 
 func (w *columnWriter) VariableQuery() string {
@@ -138,15 +139,15 @@ func (w *columnWriter) SetTableAs(as string) {
 	w.tableName = as
 }
 
-func (w *columnWriter) SetFormat(format nsql.ColumnFormat) {
+func (w *columnWriter) SetFormat(format op.ColumnFormat) {
 	w.format = format
 }
 
-func writeColumn(tableName string, name string, format nsql.ColumnFormat) string {
+func writeColumn(tableName string, name string, format op.ColumnFormat) string {
 	switch format {
-	case nsql.SelectJoinColumn:
+	case op.SelectJoinColumn:
 		return fmt.Sprintf(`"%s"."%s" AS "%s.%s"`, tableName, name, tableName, name)
-	case nsql.ColumnOnly:
+	case op.ColumnOnly:
 		return fmt.Sprintf(`"%s"`, name)
 	default:
 		// If not set, treat as NonAmbiguous column

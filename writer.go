@@ -1,6 +1,9 @@
 package nsql
 
-import "github.com/nbs-go/nsql/schema"
+import (
+	"github.com/nbs-go/nsql/op"
+	"github.com/nbs-go/nsql/schema"
+)
 
 // SchemaSetter must be implemented by part of query that may not require defining schema,
 // but will be set later. For example, Selected fields can only set without defining schema and will be referred to
@@ -25,7 +28,7 @@ type ColumnGetter interface {
 // SelectWriter must be implemented by part of query that will generate query in SELECT
 type SelectWriter interface {
 	SelectQuery() string
-	SetFormat(format ColumnFormat)
+	SetFormat(format op.ColumnFormat)
 	IsAllColumns() bool
 	AliasSetter
 	SchemaSetter
@@ -63,7 +66,7 @@ type WhereLogicWriter interface {
 
 type ColumnWriter interface {
 	ColumnQuery() string
-	SetFormat(format ColumnFormat)
+	SetFormat(format op.ColumnFormat)
 	ColumnGetter
 	AliasSetter
 	SchemaSetter

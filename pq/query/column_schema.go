@@ -2,6 +2,7 @@ package query
 
 import (
 	"github.com/nbs-go/nsql"
+	"github.com/nbs-go/nsql/op"
 	"github.com/nbs-go/nsql/schema"
 	"strings"
 )
@@ -11,7 +12,7 @@ type columnSchemaWriter struct {
 	schema    *schema.Schema
 	columns   []string
 	tableName string
-	format    nsql.ColumnFormat
+	format    op.ColumnFormat
 }
 
 func (w *columnSchemaWriter) SetSchema(s *schema.Schema) {
@@ -43,7 +44,7 @@ func (w *columnSchemaWriter) SelectQuery() string {
 	return strings.Join(queries, nsql.Separator)
 }
 
-func (w *columnSchemaWriter) SetFormat(format nsql.ColumnFormat) {
+func (w *columnSchemaWriter) SetFormat(format op.ColumnFormat) {
 	w.format = format
 }
 

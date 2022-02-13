@@ -3,6 +3,7 @@ package query
 import (
 	"fmt"
 	"github.com/nbs-go/nsql"
+	"github.com/nbs-go/nsql/op"
 	"github.com/nbs-go/nsql/schema"
 	"strings"
 )
@@ -10,7 +11,7 @@ import (
 type InsertBuilder struct {
 	tableName string
 	columns   []string
-	format    nsql.ColumnFormat
+	format    op.ColumnFormat
 }
 
 func (b *InsertBuilder) Build() string {

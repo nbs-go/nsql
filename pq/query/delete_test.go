@@ -1,7 +1,7 @@
 package query_test
 
 import (
-	"github.com/nbs-go/nsql"
+	"github.com/nbs-go/nsql/op"
 	"github.com/nbs-go/nsql/option"
 	"github.com/nbs-go/nsql/pq/query"
 	"github.com/nbs-go/nsql/schema"
@@ -35,6 +35,6 @@ func TestDelete(t *testing.T) {
 				query.Equal(query.Column("id")),
 				query.Equal(query.Column("version")),
 			),
-		).Build(option.VariableFormat(nsql.NamedVar)),
+		).Build(option.VariableFormat(op.NamedVar)),
 		`DELETE FROM "Transaction" WHERE "id" = :id AND "version" = :version`)
 }

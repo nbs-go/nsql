@@ -236,7 +236,7 @@ func (b *SelectBuilder) writeSelectQuery() string {
 	// Set format if query has joins
 	if len(b.tables) > 1 {
 		for _, w := range writers {
-			w.SetFormat(nsql.SelectJoinColumn)
+			w.SetFormat(op.SelectJoinColumn)
 		}
 	}
 

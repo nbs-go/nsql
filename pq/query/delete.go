@@ -3,6 +3,7 @@ package query
 import (
 	"fmt"
 	"github.com/nbs-go/nsql"
+	"github.com/nbs-go/nsql/op"
 	"github.com/nbs-go/nsql/option"
 	"github.com/nbs-go/nsql/schema"
 )
@@ -18,7 +19,7 @@ func (b *DeleteBuilder) Build(args ...interface{}) string {
 	format, ok := opts.GetVariableFormat()
 	if !ok {
 		// If var format is not defined, then set default to query.NamedVar
-		format = nsql.BindVar
+		format = op.BindVar
 	}
 
 	// Set variable format in conditions

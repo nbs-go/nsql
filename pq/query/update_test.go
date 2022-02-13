@@ -1,7 +1,7 @@
 package query_test
 
 import (
-	"github.com/nbs-go/nsql"
+	"github.com/nbs-go/nsql/op"
 	"github.com/nbs-go/nsql/option"
 	"github.com/nbs-go/nsql/pq/query"
 	"github.com/nbs-go/nsql/schema"
@@ -55,7 +55,7 @@ func TestUpdate(t *testing.T) {
 					query.Equal(query.Column("version")),
 				),
 			).
-			Build(option.VariableFormat(nsql.BindVar)),
+			Build(option.VariableFormat(op.BindVar)),
 		`UPDATE "Transaction" SET "status" = ? WHERE "id" = ? AND "version" = ?`,
 	)
 }
