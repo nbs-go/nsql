@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.0
+
+- [FIXED] Fix panic on skipped Join condition
+- [ADDED] Add BindVar for dynamic compare value
+
 ## 0.4.0
 
 - [ADDED] Add ResetSkip function
