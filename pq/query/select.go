@@ -191,15 +191,6 @@ func (b *SelectBuilder) Build() string {
 
 // Private methods
 
-func (b *SelectBuilder) getTableAlias(tableName string) string {
-	t, ok := b.tables[tableName]
-	if !ok {
-		return ""
-	}
-
-	return t.As
-}
-
 func (b *SelectBuilder) writeSelectQuery() string {
 	// Replace fromTableFlag with FROM Table Name
 	from := b.getFromSchema()
