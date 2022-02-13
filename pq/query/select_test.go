@@ -410,3 +410,35 @@ func TestResetLimitSkip(t *testing.T) {
 		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person"`,
 	)
 }
+
+func TestJoinBindVarCondition(t *testing.T) {
+	testSelectBuilder(t, "INNER JOIN WITH BIND VAR CONDITION",
+		query.Select(query.Column("*")).
+			From(person, option.As("p")).
+			Join(vehicleOwnership,
+				query.And(
+					query.Equal(query.Column("id"), query.On("personId")),
+					query.Equal(query.Column("vehicleId", option.Schema(vehicleOwnership)), query.BindVar()),
+				),
+				option.JoinMethod(op.InnerJoin), option.As("vo"),
+			).
+			Where(query.GreaterThanEqual(query.Column("createdAt", option.Schema(vehicleOwnership)))),
+		`SELECT "p"."createdAt" AS "p.createdAt", "p"."updatedAt" AS "p.updatedAt", "p"."id" AS "p.id", "p"."fullName" AS "p.fullName" FROM "Person" AS "p" INNER JOIN "VehicleOwnership" AS "vo" ON "p"."id" = "vo"."personId" AND "vo"."vehicleId" = ? WHERE "vo"."createdAt" >= ?`,
+	)
+}
+
+func TestJoinInvalidBindVarCondition(t *testing.T) {
+	testSelectBuilder(t, "INNER JOIN WITH NO COLUMN BIND VAR CONDITION",
+		query.Select(query.Column("*")).
+			From(person, option.As("p")).
+			Join(vehicleOwnership,
+				query.And(
+					query.Equal(query.Column("id"), query.On("personId")),
+					query.Equal(query.Column("vehicleId"), query.BindVar()),
+				),
+				option.JoinMethod(op.InnerJoin), option.As("vo"),
+			).
+			Where(query.GreaterThanEqual(query.Column("createdAt", option.Schema(vehicleOwnership)))),
+		`SELECT "p"."createdAt" AS "p.createdAt", "p"."updatedAt" AS "p.updatedAt", "p"."id" AS "p.id", "p"."fullName" AS "p.fullName" FROM "Person" AS "p" INNER JOIN "VehicleOwnership" AS "vo" ON "p"."id" = "vo"."personId" WHERE "vo"."createdAt" >= ?`,
+	)
+}
