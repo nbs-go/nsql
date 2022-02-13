@@ -2,7 +2,7 @@ package query
 
 import (
 	"fmt"
-	"github.com/nbs-go/nsql/query"
+	"github.com/nbs-go/nsql"
 	"strings"
 )
 
@@ -10,17 +10,17 @@ func newTableWriter(tableName string, as string) *tableWriter {
 	return &tableWriter{
 		tableName: tableName,
 		as:        as,
-		joints:    map[string]query.JoinWriter{},
+		joints:    map[string]nsql.JoinWriter{},
 	}
 }
 
 type tableWriter struct {
 	tableName string
 	as        string
-	joints    map[string]query.JoinWriter
+	joints    map[string]nsql.JoinWriter
 }
 
-func (s *tableWriter) Join(j query.JoinWriter) {
+func (s *tableWriter) Join(j nsql.JoinWriter) {
 	// Set join index
 	idx := len(s.joints)
 	j.SetIndex(idx)

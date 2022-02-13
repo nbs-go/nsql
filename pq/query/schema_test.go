@@ -1,6 +1,7 @@
-package query
+package query_test
 
 import (
+	"github.com/nbs-go/nsql/pq/query"
 	"github.com/nbs-go/nsql/schema"
 	"github.com/nbs-go/nsql/test_utils"
 	"testing"
@@ -17,7 +18,7 @@ func TestSchemaBuilder(t *testing.T) {
 	}
 
 	s := schema.New(schema.FromModelRef(Customer{}))
-	sb := Schema(s)
+	sb := query.Schema(s)
 
 	// Test #1
 	test_utils.CompareString(t, "FIND BY PRIMARY KEY", sb.FindByPK(),
@@ -36,11 +37,11 @@ func TestSchemaBuilder(t *testing.T) {
 		`DELETE FROM "Customer" WHERE "id" = ?`)
 
 	// Test #5
-	test_utils.CompareString(t, "COUNT", sb.Count(Like(Column("fullName"))),
+	test_utils.CompareString(t, "COUNT", sb.Count(query.Like(query.Column("fullName"))),
 		`SELECT COUNT("Customer"."id") AS "count" FROM "Customer" WHERE "Customer"."fullName" LIKE ?`)
 
 	// Test #6
-	test_utils.CompareString(t, "IS EXISTS", sb.IsExists(Like(Column("fullName"))),
+	test_utils.CompareString(t, "IS EXISTS", sb.IsExists(query.Like(query.Column("fullName"))),
 		`SELECT COUNT("Customer"."id") > 0 AS "isExists" FROM "Customer" WHERE "Customer"."fullName" LIKE ?`)
 
 	// Test #6

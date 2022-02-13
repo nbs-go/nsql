@@ -1,8 +1,8 @@
-package opt
+package option
 
 import (
-	"github.com/nbs-go/nsql/query"
-	"github.com/nbs-go/nsql/query/op"
+	"github.com/nbs-go/nsql"
+	"github.com/nbs-go/nsql/op"
 	"github.com/nbs-go/nsql/schema"
 )
 
@@ -16,7 +16,6 @@ const (
 	VariableKey       = "variable"
 	VariableFormatKey = "varFmt"
 	ColumnFormatKey   = "columnFmt"
-	ArgCountKey       = "argCount"
 )
 
 type Options struct {
@@ -66,32 +65,32 @@ func (o *Options) GetJoinMethod() op.JoinMethod {
 	return v.(op.JoinMethod)
 }
 
-func (o *Options) GetVariableFormat() (query.VariableFormat, bool) {
+func (o *Options) GetVariableFormat() (nsql.VariableFormat, bool) {
 	v, ok := o.KV[VariableFormatKey]
 	if !ok {
 		return 0, false
 	}
 
-	vf, fOk := v.(query.VariableFormat)
+	vf, fOk := v.(nsql.VariableFormat)
 	return vf, fOk
 }
 
-func (o *Options) GetColumnFormat() (query.ColumnFormat, bool) {
+func (o *Options) GetColumnFormat() (nsql.ColumnFormat, bool) {
 	v, ok := o.KV[ColumnFormatKey]
 	if !ok {
 		return 0, false
 	}
 
-	f, fOk := v.(query.ColumnFormat)
+	f, fOk := v.(nsql.ColumnFormat)
 	return f, fOk
 }
 
-func (o *Options) GetVariable(key string) query.VariableWriter {
+func (o *Options) GetVariable(key string) nsql.VariableWriter {
 	v, ok := o.KV[key]
 	if !ok {
 		return nil
 	}
-	return v.(query.VariableWriter)
+	return v.(nsql.VariableWriter)
 }
 
 type SetOptionFn = func(*Options)
@@ -128,13 +127,13 @@ func JoinMethod(m op.JoinMethod) SetOptionFn {
 	}
 }
 
-func VariableFormat(vf query.VariableFormat) SetOptionFn {
+func VariableFormat(vf nsql.VariableFormat) SetOptionFn {
 	return func(o *Options) {
 		o.KV[VariableFormatKey] = vf
 	}
 }
 
-func ColumnFormat(f query.ColumnFormat) SetOptionFn {
+func ColumnFormat(f nsql.ColumnFormat) SetOptionFn {
 	return func(o *Options) {
 		o.KV[ColumnFormatKey] = f
 	}

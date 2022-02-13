@@ -1,4 +1,4 @@
-package query
+package nsql
 
 import "github.com/nbs-go/nsql/schema"
 

@@ -1,6 +1,7 @@
-package query
+package query_test
 
 import (
+	"github.com/nbs-go/nsql/pq/query"
 	"github.com/nbs-go/nsql/schema"
 	"github.com/nbs-go/nsql/test_utils"
 	"testing"
@@ -12,12 +13,12 @@ func TestInsert(t *testing.T) {
 
 	// Test #1
 	test_utils.CompareString(t, "INSERT ALL COLUMNS",
-		Insert(s, "*").Build(),
+		query.Insert(s, "*").Build(),
 		`INSERT INTO "Person"("createdAt", "updatedAt", "fullName") VALUES (:createdAt, :updatedAt, :fullName)`)
 
 	// Test #2
 	test_utils.CompareString(t, "INSERT SPECIFIED COLUMNS",
-		Insert(s, "id", "fullName", "age").Build(),
+		query.Insert(s, "id", "fullName", "age").Build(),
 		`INSERT INTO "Person"("id", "fullName") VALUES (:id, :fullName)`,
 	)
 
@@ -26,7 +27,7 @@ func TestInsert(t *testing.T) {
 
 	// Test #3
 	test_utils.CompareString(t, "INSERT ALL (NO AUTO INCREMENT)",
-		Insert(s, "*").Build(),
+		query.Insert(s, "*").Build(),
 		`INSERT INTO "Person"("createdAt", "updatedAt", "id", "fullName") VALUES (:createdAt, :updatedAt, :id, :fullName)`,
 	)
 }

@@ -1,8 +1,9 @@
-package query
+package query_test
 
 import (
-	"github.com/nbs-go/nsql/query"
-	opt "github.com/nbs-go/nsql/query/option"
+	"github.com/nbs-go/nsql"
+	"github.com/nbs-go/nsql/option"
+	"github.com/nbs-go/nsql/pq/query"
 	"github.com/nbs-go/nsql/schema"
 	"github.com/nbs-go/nsql/test_utils"
 	"testing"
@@ -23,22 +24,22 @@ func TestUpdate(t *testing.T) {
 
 	// Test #1
 	test_utils.CompareString(t, "UPDATE ALL COLUMNS",
-		Update(s, "*").Build(),
+		query.Update(s, "*").Build(),
 		`UPDATE "Transaction" SET "createdAt" = :createdAt, "updatedAt" = :updatedAt, "status" = :status, "version" = :version WHERE "id" = :id`)
 
 	// Test #2
 	test_utils.CompareString(t, "UPDATE SPECIFIED COLUMNS",
-		Update(s, "status", "price").Build(),
+		query.Update(s, "status", "price").Build(),
 		`UPDATE "Transaction" SET "status" = :status WHERE "id" = :id`,
 	)
 
 	// Test #3
 	test_utils.CompareString(t, "UPDATE WITH MULTIPLE CONDITION",
-		Update(s, "status").
+		query.Update(s, "status").
 			Where(
-				And(
-					Equal(Column("id")),
-					Equal(Column("version")),
+				query.And(
+					query.Equal(query.Column("id")),
+					query.Equal(query.Column("version")),
 				),
 			).
 			Build(),
@@ -47,14 +48,14 @@ func TestUpdate(t *testing.T) {
 
 	// Test #4
 	test_utils.CompareString(t, "UPDATE WITH BIND VAR",
-		Update(s, "status").
+		query.Update(s, "status").
 			Where(
-				And(
-					Equal(Column("id")),
-					Equal(Column("version")),
+				query.And(
+					query.Equal(query.Column("id")),
+					query.Equal(query.Column("version")),
 				),
 			).
-			Build(opt.VariableFormat(query.BindVar)),
+			Build(option.VariableFormat(nsql.BindVar)),
 		`UPDATE "Transaction" SET "status" = ? WHERE "id" = ? AND "version" = ?`,
 	)
 }

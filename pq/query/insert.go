@@ -2,7 +2,7 @@ package query
 
 import (
 	"fmt"
-	"github.com/nbs-go/nsql/query"
+	"github.com/nbs-go/nsql"
 	"github.com/nbs-go/nsql/schema"
 	"strings"
 )
@@ -10,7 +10,7 @@ import (
 type InsertBuilder struct {
 	tableName string
 	columns   []string
-	format    query.ColumnFormat
+	format    nsql.ColumnFormat
 }
 
 func (b *InsertBuilder) Build() string {
@@ -24,8 +24,8 @@ func (b *InsertBuilder) Build() string {
 	}
 
 	// Write values
-	columns := strings.Join(columnQueries, query.Separator)
-	values := strings.Join(valueQueries, query.Separator)
+	columns := strings.Join(columnQueries, nsql.Separator)
+	values := strings.Join(valueQueries, nsql.Separator)
 
 	return fmt.Sprintf(`INSERT INTO "%s"(%s) VALUES (%s)`, b.tableName, columns, values)
 }

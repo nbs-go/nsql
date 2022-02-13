@@ -1,5 +1,0 @@
-package query
-
-const (
-	Separator = ", "
-)

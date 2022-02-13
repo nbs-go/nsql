@@ -2,17 +2,17 @@ package query
 
 import (
 	"fmt"
-	"github.com/nbs-go/nsql/query"
-	"github.com/nbs-go/nsql/query/op"
+	"github.com/nbs-go/nsql"
+	"github.com/nbs-go/nsql/op"
 	"strings"
 )
 
 type whereLogicWriter struct {
 	op         op.Operator
-	conditions []query.WhereWriter
+	conditions []nsql.WhereWriter
 }
 
-func (w *whereLogicWriter) SetConditions(conditions []query.WhereWriter) {
+func (w *whereLogicWriter) SetConditions(conditions []nsql.WhereWriter) {
 	w.conditions = conditions
 }
 
@@ -30,7 +30,7 @@ func (w *whereLogicWriter) WhereQuery() string {
 		cq := cw.WhereQuery()
 
 		// If condition is a logical, then add brackets
-		if _, ok := cw.(query.WhereLogicWriter); ok {
+		if _, ok := cw.(nsql.WhereLogicWriter); ok {
 			cq = fmt.Sprintf("(%s)", cq)
 		}
 
@@ -40,6 +40,6 @@ func (w *whereLogicWriter) WhereQuery() string {
 	return strings.Join(conditions, separator)
 }
 
-func (w *whereLogicWriter) GetConditions() []query.WhereWriter {
+func (w *whereLogicWriter) GetConditions() []nsql.WhereWriter {
 	return w.conditions
 }

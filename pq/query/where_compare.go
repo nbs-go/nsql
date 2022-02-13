@@ -2,14 +2,14 @@ package query
 
 import (
 	"fmt"
-	"github.com/nbs-go/nsql/query"
-	"github.com/nbs-go/nsql/query/op"
+	"github.com/nbs-go/nsql"
+	"github.com/nbs-go/nsql/op"
 )
 
 type whereCompareWriter struct {
-	query.ColumnWriter
+	nsql.ColumnWriter
 	op       op.Operator
-	variable query.VariableWriter
+	variable nsql.VariableWriter
 	as       string
 }
 
@@ -27,11 +27,11 @@ func (w *whereCompareWriter) IsAllColumns() bool {
 	return false
 }
 
-func (w *whereCompareWriter) GetVariable() query.VariableWriter {
+func (w *whereCompareWriter) GetVariable() nsql.VariableWriter {
 	return w.variable
 }
 
-func (w *whereCompareWriter) SetVariable(v query.VariableWriter) {
+func (w *whereCompareWriter) SetVariable(v nsql.VariableWriter) {
 	w.variable = v
 }
 

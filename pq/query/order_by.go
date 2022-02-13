@@ -1,12 +1,12 @@
 package query
 
 import (
-	"github.com/nbs-go/nsql/query"
-	"github.com/nbs-go/nsql/query/op"
+	"github.com/nbs-go/nsql"
+	"github.com/nbs-go/nsql/op"
 )
 
 type orderByWriter struct {
-	query.ColumnWriter
+	nsql.ColumnWriter
 	direction op.SortDirection
 }
 

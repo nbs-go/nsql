@@ -2,8 +2,8 @@ package query
 
 import (
 	"fmt"
-	"github.com/nbs-go/nsql/query"
-	opt "github.com/nbs-go/nsql/query/option"
+	"github.com/nbs-go/nsql"
+	"github.com/nbs-go/nsql/option"
 	"github.com/nbs-go/nsql/schema"
 	"strings"
 )
@@ -11,7 +11,7 @@ import (
 type UpdateBuilder struct {
 	schema  *schema.Schema
 	columns []string
-	where   query.WhereWriter
+	where   nsql.WhereWriter
 }
 
 func (b *UpdateBuilder) Build(args ...interface{}) string {
@@ -22,11 +22,11 @@ func (b *UpdateBuilder) Build(args ...interface{}) string {
 	}
 
 	// Get variable format option
-	opts := opt.EvaluateOptions(args)
+	opts := option.EvaluateOptions(args)
 	format, ok := opts.GetVariableFormat()
 	if !ok {
 		// If var format is not defined, then set default to query.NamedVar
-		format = query.NamedVar
+		format = nsql.NamedVar
 	}
 
 	// Set variable format in conditions
@@ -44,14 +44,14 @@ func (b *UpdateBuilder) Build(args ...interface{}) string {
 	for i, v := range b.columns {
 		var q string
 		switch format {
-		case query.BindVar:
+		case nsql.BindVar:
 			q = fmt.Sprintf(`"%s" = ?`, v)
-		case query.NamedVar:
+		case nsql.NamedVar:
 			q = fmt.Sprintf(`"%s" = :%s`, v, v)
 		}
 		assignmentQueries[i] = q
 	}
-	assignments := strings.Join(assignmentQueries, query.Separator)
+	assignments := strings.Join(assignmentQueries, nsql.Separator)
 
 	// Write where
 	where := b.where.WhereQuery()
@@ -59,7 +59,7 @@ func (b *UpdateBuilder) Build(args ...interface{}) string {
 	return fmt.Sprintf(`UPDATE "%s" SET %s WHERE %s`, b.schema.TableName(), assignments, where)
 }
 
-func (b *UpdateBuilder) Where(w query.WhereWriter) *UpdateBuilder {
+func (b *UpdateBuilder) Where(w nsql.WhereWriter) *UpdateBuilder {
 	b.where = w
 	return b
 }
@@ -90,16 +90,16 @@ func Update(s *schema.Schema, column string, columnN ...string) *UpdateBuilder {
 	return &b
 }
 
-func setUpdateFormat(ww query.WhereWriter, s *schema.Schema, format query.VariableFormat) {
+func setUpdateFormat(ww nsql.WhereWriter, s *schema.Schema, format nsql.VariableFormat) {
 	switch w := ww.(type) {
-	case query.WhereLogicWriter:
+	case nsql.WhereLogicWriter:
 		// Get conditions
 		for _, cw := range w.GetConditions() {
 			setUpdateFormat(cw, s, format)
 		}
-	case query.WhereCompareWriter:
+	case nsql.WhereCompareWriter:
 		// Get column
-		cw, ok := w.(query.ColumnWriter)
+		cw, ok := w.(nsql.ColumnWriter)
 		if !ok {
 			panic(fmt.Errorf("update condition did not implement query.ColumnWriter"))
 		}
@@ -111,13 +111,13 @@ func setUpdateFormat(ww query.WhereWriter, s *schema.Schema, format query.Variab
 		}
 
 		// Set format
-		cw.SetFormat(query.ColumnOnly)
+		cw.SetFormat(nsql.ColumnOnly)
 
 		// Set variable format
 		switch format {
-		case query.BindVar:
+		case nsql.BindVar:
 			w.SetVariable(new(bindVar))
-		case query.NamedVar:
+		case nsql.NamedVar:
 			w.SetVariable(&namedVar{column: col})
 		}
 	}

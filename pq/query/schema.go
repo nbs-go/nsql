@@ -1,8 +1,8 @@
 package query
 
 import (
-	"github.com/nbs-go/nsql/query"
-	opt "github.com/nbs-go/nsql/query/option"
+	"github.com/nbs-go/nsql"
+	"github.com/nbs-go/nsql/option"
 	"github.com/nbs-go/nsql/schema"
 )
 
@@ -38,11 +38,11 @@ func (s *SchemaBuilder) Delete() string {
 	return Delete(s.schema).Where(where).Build()
 }
 
-func (s *SchemaBuilder) Count(where query.WhereWriter) string {
-	return Select(Count(s.schema.PrimaryKey(), opt.As("count"))).From(s.schema).Where(where).Build()
+func (s *SchemaBuilder) Count(where nsql.WhereWriter) string {
+	return Select(Count(s.schema.PrimaryKey(), option.As("count"))).From(s.schema).Where(where).Build()
 }
 
-func (s *SchemaBuilder) IsExists(where query.WhereWriter) string {
-	return Select(GreaterThan(Count(s.schema.PrimaryKey()), IntVar(0), opt.As("isExists"))).
+func (s *SchemaBuilder) IsExists(where nsql.WhereWriter) string {
+	return Select(GreaterThan(Count(s.schema.PrimaryKey()), IntVar(0), option.As("isExists"))).
 		From(s.schema).Where(where).Build()
 }

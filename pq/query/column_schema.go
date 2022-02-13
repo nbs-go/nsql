@@ -1,7 +1,7 @@
 package query
 
 import (
-	"github.com/nbs-go/nsql/query"
+	"github.com/nbs-go/nsql"
 	"github.com/nbs-go/nsql/schema"
 	"strings"
 )
@@ -11,7 +11,7 @@ type columnSchemaWriter struct {
 	schema    *schema.Schema
 	columns   []string
 	tableName string
-	format    query.ColumnFormat
+	format    nsql.ColumnFormat
 }
 
 func (w *columnSchemaWriter) SetSchema(s *schema.Schema) {
@@ -40,10 +40,10 @@ func (w *columnSchemaWriter) SelectQuery() string {
 		queries = append(queries, q)
 	}
 	// Generate query
-	return strings.Join(queries, query.Separator)
+	return strings.Join(queries, nsql.Separator)
 }
 
-func (w *columnSchemaWriter) SetFormat(format query.ColumnFormat) {
+func (w *columnSchemaWriter) SetFormat(format nsql.ColumnFormat) {
 	w.format = format
 }
 

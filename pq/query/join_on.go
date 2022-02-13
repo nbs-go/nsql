@@ -1,13 +1,11 @@
 package query
 
-import (
-	opt "github.com/nbs-go/nsql/query/option"
-)
+import "github.com/nbs-go/nsql/option"
 
-func On(col string, args ...interface{}) opt.SetOptionFn {
-	return func(o *opt.Options) {
+func On(col string, args ...interface{}) option.SetOptionFn {
+	return func(o *option.Options) {
 		// Evaluate options
-		opts := opt.EvaluateOptions(args)
+		opts := option.EvaluateOptions(args)
 		schema := opts.GetSchema()
 
 		// Get table name
@@ -17,7 +15,7 @@ func On(col string, args ...interface{}) opt.SetOptionFn {
 		}
 
 		// Set variable
-		o.KV[opt.VariableKey] = &columnWriter{
+		o.KV[option.VariableKey] = &columnWriter{
 			name:      col,
 			tableName: tableName,
 		}

@@ -2,19 +2,19 @@ package query
 
 import (
 	"fmt"
-	"github.com/nbs-go/nsql/query"
-	opt "github.com/nbs-go/nsql/query/option"
+	"github.com/nbs-go/nsql"
+	"github.com/nbs-go/nsql/option"
 )
 
 func Count(column string, args ...interface{}) *selectCountWriter {
 	// Get options
-	opts := opt.EvaluateOptions(args)
+	opts := option.EvaluateOptions(args)
 	s := opts.GetSchema()
-	as, _ := opts.GetString(opt.AsKey)
+	as, _ := opts.GetString(option.AsKey)
 
 	// If all column, then create
 	var allColumn bool
-	var cw query.ColumnWriter
+	var cw nsql.ColumnWriter
 	if column == AllColumns {
 		cw = &columnWriter{
 			name:      column,
@@ -44,7 +44,7 @@ func Count(column string, args ...interface{}) *selectCountWriter {
 }
 
 type selectCountWriter struct {
-	query.ColumnWriter
+	nsql.ColumnWriter
 	as        string
 	allColumn bool
 }
@@ -72,4 +72,4 @@ func (s *selectCountWriter) SelectQuery() string {
 	return q
 }
 
-func (s *selectCountWriter) SetFormat(_ query.ColumnFormat) {}
+func (s *selectCountWriter) SetFormat(_ nsql.ColumnFormat) {}

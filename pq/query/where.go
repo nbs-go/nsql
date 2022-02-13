@@ -2,19 +2,19 @@ package query
 
 import (
 	"fmt"
-	"github.com/nbs-go/nsql/query"
-	"github.com/nbs-go/nsql/query/op"
-	opt "github.com/nbs-go/nsql/query/option"
+	"github.com/nbs-go/nsql"
+	"github.com/nbs-go/nsql/op"
+	"github.com/nbs-go/nsql/option"
 	"github.com/nbs-go/nsql/schema"
 )
 
 // whereCompareWriter
 
-func newWhereComparisonWriter(col query.ColumnWriter, operator op.Operator, args []interface{}) *whereCompareWriter {
-	opts := opt.EvaluateOptions(args)
+func newWhereComparisonWriter(col nsql.ColumnWriter, operator op.Operator, args []interface{}) *whereCompareWriter {
+	opts := option.EvaluateOptions(args)
 
 	// Get variable writer
-	v := opts.GetVariable(opt.VariableKey)
+	v := opts.GetVariable(option.VariableKey)
 	if v == nil {
 		// Set default variable writer, by operator
 		switch operator {
@@ -27,7 +27,7 @@ func newWhereComparisonWriter(col query.ColumnWriter, operator op.Operator, args
 	}
 
 	// Get alias
-	as, _ := opts.GetString(opt.AsKey)
+	as, _ := opts.GetString(option.AsKey)
 
 	return &whereCompareWriter{
 		ColumnWriter: col,
@@ -37,11 +37,11 @@ func newWhereComparisonWriter(col query.ColumnWriter, operator op.Operator, args
 	}
 }
 
-func newInWhereComparisonWriter(col query.ColumnWriter, argCount int, operator op.Operator, args []interface{}) *whereCompareWriter {
-	opts := opt.EvaluateOptions(args)
+func newInWhereComparisonWriter(col nsql.ColumnWriter, argCount int, operator op.Operator, args []interface{}) *whereCompareWriter {
+	opts := option.EvaluateOptions(args)
 
 	// Get variable writer
-	v := opts.GetVariable(opt.VariableKey)
+	v := opts.GetVariable(option.VariableKey)
 	if v == nil {
 		// Set default variable writer, by operator
 		switch operator {
@@ -51,7 +51,7 @@ func newInWhereComparisonWriter(col query.ColumnWriter, argCount int, operator o
 	}
 
 	// Get alias
-	as, _ := opts.GetString(opt.AsKey)
+	as, _ := opts.GetString(option.AsKey)
 
 	return &whereCompareWriter{
 		ColumnWriter: col,
@@ -61,66 +61,66 @@ func newInWhereComparisonWriter(col query.ColumnWriter, argCount int, operator o
 	}
 }
 
-func Equal(col query.ColumnWriter, args ...interface{}) *whereCompareWriter {
+func Equal(col nsql.ColumnWriter, args ...interface{}) *whereCompareWriter {
 	return newWhereComparisonWriter(col, op.Equal, args)
 }
 
-func NotEqual(col query.ColumnWriter, args ...interface{}) *whereCompareWriter {
+func NotEqual(col nsql.ColumnWriter, args ...interface{}) *whereCompareWriter {
 	return newWhereComparisonWriter(col, op.NotEqual, args)
 }
 
-func GreaterThan(col query.ColumnWriter, args ...interface{}) *whereCompareWriter {
+func GreaterThan(col nsql.ColumnWriter, args ...interface{}) *whereCompareWriter {
 	return newWhereComparisonWriter(col, op.GreaterThan, args)
 }
 
-func GreaterThanEqual(col query.ColumnWriter, args ...interface{}) *whereCompareWriter {
+func GreaterThanEqual(col nsql.ColumnWriter, args ...interface{}) *whereCompareWriter {
 	return newWhereComparisonWriter(col, op.GreaterThanEqual, args)
 }
 
-func LessThan(col query.ColumnWriter, args ...interface{}) *whereCompareWriter {
+func LessThan(col nsql.ColumnWriter, args ...interface{}) *whereCompareWriter {
 	return newWhereComparisonWriter(col, op.LessThan, args)
 }
 
-func LessThanEqual(col query.ColumnWriter, args ...interface{}) *whereCompareWriter {
+func LessThanEqual(col nsql.ColumnWriter, args ...interface{}) *whereCompareWriter {
 	return newWhereComparisonWriter(col, op.LessThanEqual, args)
 }
 
-func Like(col query.ColumnWriter, args ...interface{}) *whereCompareWriter {
+func Like(col nsql.ColumnWriter, args ...interface{}) *whereCompareWriter {
 	return newWhereComparisonWriter(col, op.Like, args)
 }
 
-func NotLike(col query.ColumnWriter, args ...interface{}) *whereCompareWriter {
+func NotLike(col nsql.ColumnWriter, args ...interface{}) *whereCompareWriter {
 	return newWhereComparisonWriter(col, op.NotLike, args)
 }
 
-func ILike(col query.ColumnWriter, args ...interface{}) *whereCompareWriter {
+func ILike(col nsql.ColumnWriter, args ...interface{}) *whereCompareWriter {
 	return newWhereComparisonWriter(col, op.ILike, args)
 }
 
-func NotILike(col query.ColumnWriter, args ...interface{}) *whereCompareWriter {
+func NotILike(col nsql.ColumnWriter, args ...interface{}) *whereCompareWriter {
 	return newWhereComparisonWriter(col, op.NotILike, args)
 }
 
-func Between(col query.ColumnWriter, args ...interface{}) *whereCompareWriter {
+func Between(col nsql.ColumnWriter, args ...interface{}) *whereCompareWriter {
 	return newWhereComparisonWriter(col, op.Between, args)
 }
 
-func NotBetween(col query.ColumnWriter, args ...interface{}) *whereCompareWriter {
+func NotBetween(col nsql.ColumnWriter, args ...interface{}) *whereCompareWriter {
 	return newWhereComparisonWriter(col, op.NotBetween, args)
 }
 
-func In(col query.ColumnWriter, argCount int, args ...interface{}) *whereCompareWriter {
+func In(col nsql.ColumnWriter, argCount int, args ...interface{}) *whereCompareWriter {
 	return newInWhereComparisonWriter(col, argCount, op.In, args)
 }
 
-func NotIn(col query.ColumnWriter, argCount int, args ...interface{}) *whereCompareWriter {
+func NotIn(col nsql.ColumnWriter, argCount int, args ...interface{}) *whereCompareWriter {
 	return newInWhereComparisonWriter(col, argCount, op.NotIn, args)
 }
 
 // whereLogicWriter
 
-func newWhereLogicalWriter(operator op.Operator, c1 query.WhereWriter, cn ...query.WhereWriter) *whereLogicWriter {
-	conditions := []query.WhereWriter{c1}
+func newWhereLogicalWriter(operator op.Operator, c1 nsql.WhereWriter, cn ...nsql.WhereWriter) *whereLogicWriter {
+	conditions := []nsql.WhereWriter{c1}
 	if len(cn) > 0 {
 		conditions = append(conditions, cn...)
 	}
@@ -131,23 +131,23 @@ func newWhereLogicalWriter(operator op.Operator, c1 query.WhereWriter, cn ...que
 	}
 }
 
-func And(c1 query.WhereWriter, cn ...query.WhereWriter) *whereLogicWriter {
+func And(c1 nsql.WhereWriter, cn ...nsql.WhereWriter) *whereLogicWriter {
 	return newWhereLogicalWriter(op.And, c1, cn...)
 }
 
-func Or(c1 query.WhereWriter, cn ...query.WhereWriter) *whereLogicWriter {
+func Or(c1 nsql.WhereWriter, cn ...nsql.WhereWriter) *whereLogicWriter {
 	return newWhereLogicalWriter(op.Or, c1, cn...)
 }
 
-func resolveFromTableFlag(ww query.WhereWriter, from *schema.Schema) {
+func resolveFromTableFlag(ww nsql.WhereWriter, from *schema.Schema) {
 	// Switch type
 	switch w := ww.(type) {
-	case query.WhereLogicWriter:
+	case nsql.WhereLogicWriter:
 		// Get conditions
 		for _, cw := range w.GetConditions() {
 			resolveFromTableFlag(cw, from)
 		}
-	case query.WhereCompareWriter:
+	case nsql.WhereCompareWriter:
 		// Get alias
 		if w.GetTableName() == fromTableFlag {
 			w.SetSchema(from)
@@ -155,12 +155,12 @@ func resolveFromTableFlag(ww query.WhereWriter, from *schema.Schema) {
 	}
 }
 
-func filterWhereWriters(ww query.WhereWriter, tables map[string]query.Table) query.WhereWriter {
+func filterWhereWriters(ww nsql.WhereWriter, tables map[string]nsql.Table) nsql.WhereWriter {
 	// Switch type
 	switch w := ww.(type) {
-	case query.WhereLogicWriter:
+	case nsql.WhereLogicWriter:
 		// Get conditions
-		var conditions []query.WhereWriter
+		var conditions []nsql.WhereWriter
 		for _, cw := range w.GetConditions() {
 			c := filterWhereWriters(cw, tables)
 			// If no writer is set, then delete from array
@@ -171,7 +171,7 @@ func filterWhereWriters(ww query.WhereWriter, tables map[string]query.Table) que
 		}
 		// Update conditions
 		w.SetConditions(conditions)
-	case query.WhereCompareWriter:
+	case nsql.WhereCompareWriter:
 		// Check if condition is registered in table
 		table, ok := tables[w.GetTableName()]
 		if !ok {
@@ -184,20 +184,20 @@ func filterWhereWriters(ww query.WhereWriter, tables map[string]query.Table) que
 	return ww
 }
 
-func resolveJoinTableFlag(ww query.WhereWriter, joinTable *schema.Schema) {
+func resolveJoinTableFlag(ww nsql.WhereWriter, joinTable *schema.Schema) {
 	// Switch type
 	switch w := ww.(type) {
-	case query.WhereLogicWriter:
+	case nsql.WhereLogicWriter:
 		// Get conditions
 		for _, cw := range w.GetConditions() {
 			resolveJoinTableFlag(cw, joinTable)
 		}
-	case query.WhereCompareWriter:
+	case nsql.WhereCompareWriter:
 		// Get variable
 		v := w.GetVariable()
 
 		// Cast as column
-		cv, ok := v.(query.ColumnWriter)
+		cv, ok := v.(nsql.ColumnWriter)
 		if !ok {
 			return
 		}
@@ -209,28 +209,28 @@ func resolveJoinTableFlag(ww query.WhereWriter, joinTable *schema.Schema) {
 	}
 }
 
-func setJoinTableAs(ww query.WhereWriter, joinTable *query.Table, tableRefs map[string]query.Table) {
+func setJoinTableAs(ww nsql.WhereWriter, joinTable *nsql.Table, tableRefs map[string]nsql.Table) {
 	switch w := ww.(type) {
-	case query.WhereLogicWriter:
+	case nsql.WhereLogicWriter:
 		// Get conditions
 		for _, cw := range w.GetConditions() {
 			setJoinTableAs(cw, joinTable, tableRefs)
 		}
-	case query.WhereCompareWriter:
+	case nsql.WhereCompareWriter:
 		// Get column
-		if cw, ok := w.(query.ColumnWriter); ok {
+		if cw, ok := w.(nsql.ColumnWriter); ok {
 			setJoinColumnTableAs(cw, joinTable, tableRefs)
 		}
 
 		// Get variable and set table alias
 		v := w.GetVariable()
-		if cv, ok := v.(query.ColumnWriter); ok {
+		if cv, ok := v.(nsql.ColumnWriter); ok {
 			setJoinColumnTableAs(cv, joinTable, tableRefs)
 		}
 	}
 }
 
-func setJoinColumnTableAs(column query.ColumnWriter, joinTable *query.Table, tableRefs map[string]query.Table) {
+func setJoinColumnTableAs(column nsql.ColumnWriter, joinTable *nsql.Table, tableRefs map[string]nsql.Table) {
 	// Get arguments
 	tableName := column.GetTableName()
 	col := column.GetColumn()

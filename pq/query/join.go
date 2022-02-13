@@ -2,14 +2,14 @@ package query
 
 import (
 	"fmt"
-	"github.com/nbs-go/nsql/query"
-	"github.com/nbs-go/nsql/query/op"
+	"github.com/nbs-go/nsql"
+	"github.com/nbs-go/nsql/op"
 )
 
 type joinWriter struct {
 	method      op.JoinMethod
-	table       *query.Table
-	onCondition query.WhereWriter
+	table       *nsql.Table
+	onCondition nsql.WhereWriter
 	index       int
 }
 

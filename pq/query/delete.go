@@ -2,29 +2,29 @@ package query
 
 import (
 	"fmt"
-	"github.com/nbs-go/nsql/query"
-	opt "github.com/nbs-go/nsql/query/option"
+	"github.com/nbs-go/nsql"
+	"github.com/nbs-go/nsql/option"
 	"github.com/nbs-go/nsql/schema"
 )
 
 type DeleteBuilder struct {
 	schema *schema.Schema
-	where  query.WhereWriter
+	where  nsql.WhereWriter
 }
 
 func (b *DeleteBuilder) Build(args ...interface{}) string {
 	// Get variable format option
-	opts := opt.EvaluateOptions(args)
+	opts := option.EvaluateOptions(args)
 	format, ok := opts.GetVariableFormat()
 	if !ok {
 		// If var format is not defined, then set default to query.NamedVar
-		format = query.BindVar
+		format = nsql.BindVar
 	}
 
 	// Set variable format in conditions
 	if b.where == nil {
 		// Set where to id
-		b.where = Equal(Column(b.schema.PrimaryKey(), opt.Schema(b.schema)))
+		b.where = Equal(Column(b.schema.PrimaryKey(), option.Schema(b.schema)))
 	}
 
 	// Set format in conditions
@@ -36,7 +36,7 @@ func (b *DeleteBuilder) Build(args ...interface{}) string {
 	return fmt.Sprintf(`DELETE FROM "%s" WHERE %s`, b.schema.TableName(), where)
 }
 
-func (b *DeleteBuilder) Where(w query.WhereWriter) *DeleteBuilder {
+func (b *DeleteBuilder) Where(w nsql.WhereWriter) *DeleteBuilder {
 	b.where = w
 	return b
 }
