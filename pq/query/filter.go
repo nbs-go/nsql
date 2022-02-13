@@ -1,7 +1,10 @@
 package query
 
 import (
+	"fmt"
 	"github.com/nbs-go/nsql"
+	"github.com/nbs-go/nsql/op"
+	"github.com/nbs-go/nsql/option"
 )
 
 type FilterBuilder struct {
@@ -54,4 +57,27 @@ func NewFilter(qs map[string]string, funcMap map[string]nsql.FilterParser) *Filt
 	}
 
 	return &b
+}
+
+func LikeFilter(col string, likeVar op.LikeVariable, args ...interface{}) nsql.FilterParser {
+	// Get options
+	opts := option.EvaluateOptions(args)
+	s := opts.GetSchema()
+
+	return func(qv string) (nsql.WhereWriter, []interface{}) {
+		// Trim value
+		switch likeVar {
+		case op.LikeSubString:
+			qv = fmt.Sprintf(`%%%s%%`, qv)
+		case op.LikePrefix:
+			qv = fmt.Sprintf(`%%%s`, qv)
+		case op.LikeSuffix:
+			qv = fmt.Sprintf(`%s%%`, qv)
+		}
+
+		w := ILike(Column(col, option.Schema(s)), qv)
+
+		return w, []interface{}{qv}
+	}
+
 }
