@@ -17,8 +17,11 @@ func newSelectBuilder() *SelectBuilder {
 	}
 }
 
-	// Merge columns
-	columns := append([]nsql.SelectWriter{column1}, columnN...)
+func Select(column1 nsql.SelectWriter, columnN ...nsql.SelectWriter) *SelectBuilder {
+	b := newSelectBuilder()
+	b.Select(column1, columnN...)
+	return b
+}
 
 func From(s *schema.Schema, args ...interface{}) *SelectBuilder {
 	b := newSelectBuilder()
@@ -34,6 +37,12 @@ type SelectBuilder struct {
 	limit    *int
 	skip     *int
 	tables   map[string]nsql.Table
+}
+
+func (b *SelectBuilder) Select(column1 nsql.SelectWriter, columnN ...nsql.SelectWriter) *SelectBuilder {
+	// Set existing
+	b.fields = append([]nsql.SelectWriter{column1}, columnN...)
+	return b
 }
 
 func (b *SelectBuilder) From(s *schema.Schema, args ...interface{}) *SelectBuilder {
