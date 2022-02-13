@@ -66,8 +66,6 @@ func (w *whereCompareWriter) WhereQuery() string {
 		operator = "IN"
 	case op.NotIn:
 		operator = "NOT IN"
-	default:
-		return ""
 	}
 
 	q := fmt.Sprintf(`%s %s %s`, w.ColumnQuery(), operator, w.variable.VariableQuery())
