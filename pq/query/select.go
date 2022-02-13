@@ -145,6 +145,11 @@ func (b *SelectBuilder) OrderBy(col string, args ...interface{}) *SelectBuilder 
 	return b
 }
 
+func (b *SelectBuilder) ResetOrderBy() *SelectBuilder {
+	b.orderBys = []nsql.OrderByWriter{}
+	return b
+}
+
 func (b *SelectBuilder) Limit(n int) *SelectBuilder {
 	b.limit = &n
 	return b
