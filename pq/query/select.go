@@ -155,6 +155,11 @@ func (b *SelectBuilder) Limit(n int) *SelectBuilder {
 	return b
 }
 
+func (b *SelectBuilder) ResetLimit() *SelectBuilder {
+	b.limit = nil
+	return b
+}
+
 func (b *SelectBuilder) Skip(n int) *SelectBuilder {
 	b.skip = &n
 	return b
