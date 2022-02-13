@@ -11,6 +11,12 @@ func (b *bindVar) VariableQuery() string {
 	return "?"
 }
 
+func BindVar() option.SetOptionFn {
+	return func(o *option.Options) {
+		o.KV[option.VariableKey] = &bindVar{}
+	}
+}
+
 type betweenBindVar struct{}
 
 func (b *betweenBindVar) VariableQuery() string {
