@@ -25,7 +25,7 @@ func Select(column1 nsql.SelectWriter, columnN ...nsql.SelectWriter) *SelectBuil
 
 func From(s *schema.Schema, args ...interface{}) *SelectBuilder {
 	b := newSelectBuilder()
-	b.From(s, args)
+	b.From(s, args...)
 	return b
 }
 

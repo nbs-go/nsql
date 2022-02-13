@@ -341,6 +341,12 @@ func TestFromConstructor(t *testing.T) {
 		b.Select(query.Count("*")).Build(),
 		`SELECT COUNT(*) FROM "Person"`,
 	)
+
+	b = query.From(person, option.As("p"))
+	test_utils.CompareString(t, "SELECT ALL WITH ALIAS",
+		b.Select(query.Column("*")).Build(),
+		`SELECT "p"."createdAt", "p"."updatedAt", "p"."id", "p"."fullName" FROM "Person" AS "p"`,
+	)
 }
 
 func TestResetOrderBy(t *testing.T) {
