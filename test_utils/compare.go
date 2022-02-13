@@ -15,6 +15,31 @@ func CompareStringArray(t *testing.T, expectation string, actual, expected []str
 		t.Logf("%s: PASSED", expectation)
 	}
 }
+func CompareInterfaceArray(t *testing.T, expectation string, actual, expected []interface{}) {
+	if len(actual) != len(expected) {
+		t.Errorf("%s: FAILED\n  > got different values: %v", expectation, actual)
+		return
+	}
+
+	for i, v := range actual {
+		if expected[i] != v {
+			t.Errorf("%s: FAILED\n  > got different values: %v", expectation, actual)
+			return
+		}
+	}
+
+	t.Logf("%s: PASSED", expectation)
+}
+
+func CompareStringIn(t *testing.T, expectation string, actual string, expected []string) {
+	for _, exp := range expected {
+		if exp == actual {
+			t.Logf("%s: PASSED", expectation)
+			return
+		}
+	}
+	t.Errorf("%s: FAILED\n  > got different values: %s", expectation, actual)
+}
 
 func CompareString(t *testing.T, expectation string, actual, expected string) {
 	if actual != expected {
