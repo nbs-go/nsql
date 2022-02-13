@@ -165,6 +165,11 @@ func (b *SelectBuilder) Skip(n int) *SelectBuilder {
 	return b
 }
 
+func (b *SelectBuilder) ResetSkip() *SelectBuilder {
+	b.skip = nil
+	return b
+}
+
 func (b *SelectBuilder) Build() string {
 	selectQuery := b.writeSelectQuery()
 
