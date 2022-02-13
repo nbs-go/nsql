@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0
+
+- [ADDED] Add LikeFilter helper
+- [ADDED] Add FilterBuilder for parsing query string into WHERE conditions
+- [CHANGED] Allow empty condition on AND / OR logic
+- [CHANGED] Re-structure query interface and operator to fix ambiguous package naming 
+- [FIXED] Generate bind var for IN / NOT IN based on argument count
+
 ## 0.1.1
 
 - [FIXED] Fix isExists query in Schema builder
