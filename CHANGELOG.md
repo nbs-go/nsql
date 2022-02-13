@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1
+
+- [FIXED] Fix passing arguments in From builder constructor
+
 ## 0.3.0
 
 - [ADDED] Add ResetOrderBy to clear orderBy queries
