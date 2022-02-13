@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.1
+
+- [CHANGED] Change Limit and Skip data type to int64
+
 ## 0.5.0
 
 - [FIXED] Fix panic on skipped Join condition
