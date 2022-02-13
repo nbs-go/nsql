@@ -34,8 +34,8 @@ type SelectBuilder struct {
 	from     nsql.FromWriter
 	where    nsql.WhereWriter
 	orderBys []nsql.OrderByWriter
-	limit    *int
-	skip     *int
+	limit    *int64
+	skip     *int64
 	tables   map[string]nsql.Table
 }
 
@@ -150,7 +150,7 @@ func (b *SelectBuilder) ResetOrderBy() *SelectBuilder {
 	return b
 }
 
-func (b *SelectBuilder) Limit(n int) *SelectBuilder {
+func (b *SelectBuilder) Limit(n int64) *SelectBuilder {
 	b.limit = &n
 	return b
 }
@@ -160,7 +160,7 @@ func (b *SelectBuilder) ResetLimit() *SelectBuilder {
 	return b
 }
 
-func (b *SelectBuilder) Skip(n int) *SelectBuilder {
+func (b *SelectBuilder) Skip(n int64) *SelectBuilder {
 	b.skip = &n
 	return b
 }
