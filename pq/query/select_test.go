@@ -139,7 +139,7 @@ func TestSelectBasicQuery(t *testing.T) {
 					query.ILike(query.Column("fullName")),
 					query.NotILike(query.Column("fullName")),
 					query.And(
-						query.In(query.Column("id"), 2),
+						query.In(query.Column("id"), 1),
 						query.NotIn(query.Column("id"), 2),
 					),
 				),
@@ -156,7 +156,7 @@ func TestSelectBasicQuery(t *testing.T) {
 					),
 				),
 			),
-		`SELECT "p"."createdAt", "p"."updatedAt", "p"."id", "p"."fullName" FROM "Person" AS "p" WHERE ("p"."fullName" LIKE ? OR "p"."fullName" NOT LIKE ? OR "p"."fullName" ILIKE ? OR "p"."fullName" NOT ILIKE ? OR ("p"."id" IN (?, ?) AND "p"."id" NOT IN (?, ?))) AND ("p"."id" = ? AND "p"."id" != ? AND "p"."id" < ? AND "p"."id" <= ? AND "p"."id" > ? AND "p"."id" >= ? AND ("p"."createdAt" BETWEEN ? AND ? OR "p"."updatedAt" NOT BETWEEN ? AND ?))`,
+		`SELECT "p"."createdAt", "p"."updatedAt", "p"."id", "p"."fullName" FROM "Person" AS "p" WHERE ("p"."fullName" LIKE ? OR "p"."fullName" NOT LIKE ? OR "p"."fullName" ILIKE ? OR "p"."fullName" NOT ILIKE ? OR ("p"."id" IN (?) AND "p"."id" NOT IN (?, ?))) AND ("p"."id" = ? AND "p"."id" != ? AND "p"."id" < ? AND "p"."id" <= ? AND "p"."id" > ? AND "p"."id" >= ? AND ("p"."createdAt" BETWEEN ? AND ? OR "p"."updatedAt" NOT BETWEEN ? AND ?))`,
 	)
 }
 
@@ -279,6 +279,31 @@ func TestSelectJoin(t *testing.T) {
 			),
 		`SELECT "p"."createdAt" AS "p.createdAt", "p"."updatedAt" AS "p.updatedAt", "p"."id" AS "p.id", "p"."fullName" AS "p.fullName", "vo"."vehicleId" AS "vo.vehicleId" FROM "Person" AS "p" INNER JOIN "VehicleOwnership" AS "vo" ON "p"."id" = "vo"."personId" AND "vo"."createdAt" > ?`,
 	)
+}
+
+func TestSelectEmptyWhere(t *testing.T) {
+	testSelectBuilder(t, "Empty Where",
+		query.Select(query.Column("*")).
+			From(person).
+			Where(query.And()),
+		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person"`)
+
+	testSelectBuilder(t, "Single Where",
+		query.Select(query.Column("*")).
+			From(person).
+			Where(query.And(
+				query.Equal(query.Column("id")),
+			)),
+		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person" WHERE "Person"."id" = ?`)
+
+	testSelectBuilder(t, "Empty Where Nested",
+		query.Select(query.Column("*")).
+			From(person).
+			Where(query.And(
+				query.Equal(query.Column("id")),
+				query.Or(),
+			)),
+		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person" WHERE "Person"."id" = ?`)
 }
 
 func testSelectBuilder(t *testing.T, expectation string, b *query.SelectBuilder, expected string) {

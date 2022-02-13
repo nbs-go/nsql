@@ -119,24 +119,19 @@ func NotIn(col nsql.ColumnWriter, argCount int, args ...interface{}) *whereCompa
 
 // whereLogicWriter
 
-func newWhereLogicalWriter(operator op.Operator, c1 nsql.WhereWriter, cn ...nsql.WhereWriter) *whereLogicWriter {
-	conditions := []nsql.WhereWriter{c1}
-	if len(cn) > 0 {
-		conditions = append(conditions, cn...)
-	}
-
+func newWhereLogicalWriter(operator op.Operator, cn []nsql.WhereWriter) *whereLogicWriter {
 	return &whereLogicWriter{
 		op:         operator,
-		conditions: conditions,
+		conditions: cn,
 	}
 }
 
-func And(c1 nsql.WhereWriter, cn ...nsql.WhereWriter) *whereLogicWriter {
-	return newWhereLogicalWriter(op.And, c1, cn...)
+func And(cn ...nsql.WhereWriter) *whereLogicWriter {
+	return newWhereLogicalWriter(op.And, cn)
 }
 
-func Or(c1 nsql.WhereWriter, cn ...nsql.WhereWriter) *whereLogicWriter {
-	return newWhereLogicalWriter(op.Or, c1, cn...)
+func Or(cn ...nsql.WhereWriter) *whereLogicWriter {
+	return newWhereLogicalWriter(op.Or, cn)
 }
 
 func resolveFromTableFlag(ww nsql.WhereWriter, from *schema.Schema) {
