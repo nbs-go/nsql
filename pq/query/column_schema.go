@@ -12,6 +12,7 @@ type columnSchemaWriter struct {
 	schema    *schema.Schema
 	columns   []string
 	tableName string
+	tableAs   string
 	format    op.ColumnFormat
 }
 
@@ -37,7 +38,7 @@ func (w *columnSchemaWriter) SelectQuery() string {
 		}
 
 		// Create columnWriter
-		q := writeColumn(w.tableName, col, w.format)
+		q := writeColumn(w.tableName, w.tableAs, col, w.format)
 		queries = append(queries, q)
 	}
 	// Generate query

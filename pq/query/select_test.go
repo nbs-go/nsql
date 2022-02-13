@@ -382,3 +382,15 @@ func TestUndeclaredWhereColumn(t *testing.T) {
 		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person"`,
 	)
 }
+
+func TestReusableWhereCondition(t *testing.T) {
+	b := query.Select(query.Column("*")).From(person, option.As("p")).Where(query.GreaterThan(query.Column("createdAt")))
+	b.Build()
+
+	q := b.Select(query.Count("*")).Build()
+
+	test_utils.CompareString(t, "REUSABLE WHERE CONDITION",
+		q,
+		`SELECT COUNT(*) FROM "Person" AS "p" WHERE "p"."createdAt" > ?`,
+	)
+}

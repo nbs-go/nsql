@@ -81,6 +81,7 @@ func Columns(column1, column2 string, args ...interface{}) *columnSchemaWriter {
 type columnWriter struct {
 	name      string
 	tableName string
+	tableAs   string
 	format    op.ColumnFormat
 }
 
@@ -116,7 +117,7 @@ func (w *columnWriter) Expand(args ...interface{}) nsql.SelectWriter {
 }
 
 func (w *columnWriter) ColumnQuery() string {
-	return writeColumn(w.tableName, w.name, w.format)
+	return writeColumn(w.tableName, w.tableAs, w.name, w.format)
 }
 
 func (w *columnWriter) IsAllColumns() bool {
@@ -136,14 +137,19 @@ func (w *columnWriter) SetTableAs(as string) {
 	if as == "" {
 		return
 	}
-	w.tableName = as
+	w.tableAs = as
 }
 
 func (w *columnWriter) SetFormat(format op.ColumnFormat) {
 	w.format = format
 }
 
-func writeColumn(tableName string, name string, format op.ColumnFormat) string {
+func writeColumn(tableName string, tableAs string, name string, format op.ColumnFormat) string {
+	// Set table alias
+	if tableAs != "" {
+		tableName = tableAs
+	}
+
 	switch format {
 	case op.SelectJoinColumn:
 		return fmt.Sprintf(`"%s"."%s" AS "%s.%s"`, tableName, name, tableName, name)
