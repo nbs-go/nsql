@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.2
+
+- [ADDED] Separate tableAs in Column writers to fix column resolver after query has been build
+
 ## 0.3.1
 
 - [FIXED] Fix passing arguments in From builder constructor
