@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.0
+
+- feat(mysql): Add query builder for MySQL / MariaDB
+
 ## 0.5.1
 
 - [CHANGED] Change Limit and Skip data type to int64
