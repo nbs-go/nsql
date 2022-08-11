@@ -116,3 +116,55 @@ func TimeLessThanEqualFilter(s *schema.Schema, col string, args ...string) nsql.
 		return w, []interface{}{t.UTC()}
 	}
 }
+
+func IntGreaterThanEqualFilter(s *schema.Schema, col string) nsql.FilterParser {
+	return func(qv string) (nsql.WhereWriter, []interface{}) {
+		// Parse int value
+		i, ok := qs.ParseInt(qv)
+		if !ok {
+			return nil, nil
+		}
+
+		w := GreaterThanEqual(Column(col, option.Schema(s)))
+		return w, []interface{}{i}
+	}
+}
+
+func IntLessThanEqualFilter(s *schema.Schema, col string) nsql.FilterParser {
+	return func(qv string) (nsql.WhereWriter, []interface{}) {
+		// Parse int value
+		i, ok := qs.ParseInt(qv)
+		if !ok {
+			return nil, nil
+		}
+
+		w := LessThanEqual(Column(col, option.Schema(s)))
+		return w, []interface{}{i}
+	}
+}
+
+func FloatGreaterThanEqualFilter(s *schema.Schema, col string) nsql.FilterParser {
+	return func(qv string) (nsql.WhereWriter, []interface{}) {
+		// Parse float value
+		f, ok := qs.ParseFloat(qv)
+		if !ok {
+			return nil, nil
+		}
+
+		w := GreaterThanEqual(Column(col, option.Schema(s)))
+		return w, []interface{}{f}
+	}
+}
+
+func FloatLessThanEqualFilter(s *schema.Schema, col string) nsql.FilterParser {
+	return func(qv string) (nsql.WhereWriter, []interface{}) {
+		// Parse float value
+		f, ok := qs.ParseFloat(qv)
+		if !ok {
+			return nil, nil
+		}
+
+		w := LessThanEqual(Column(col, option.Schema(s)))
+		return w, []interface{}{f}
+	}
+}
