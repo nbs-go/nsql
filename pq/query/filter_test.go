@@ -171,15 +171,18 @@ func TestTimeBetweenFilter(t *testing.T) {
 
 	// Assert
 	actual := b.Args()
-	expected := []interface{}{time.Unix(1640970000, 0).UTC(), time.Unix(1643562000, 0).UTC()}
+	expected := map[interface{}]bool{
+		time.Unix(1640970000, 0).UTC(): true,
+		time.Unix(1643562000, 0).UTC(): true,
+	}
 
 	if len(actual) != len(expected) {
 		t.Errorf("FAILED\n  > got different values: %v, expected: %v", actual, expected)
 		return
 	}
 
-	for i, v := range actual {
-		if expected[i] != v {
+	for _, v := range actual {
+		if _, ok := expected[v]; !ok {
 			t.Errorf("FAILED\n  > got different values: %v, expected: %v", actual, expected)
 			return
 		}
