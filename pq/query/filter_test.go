@@ -192,3 +192,92 @@ func TestTimeBetweenFilter(t *testing.T) {
 		}
 	}
 }
+
+func TestIntBetweenFilter(t *testing.T) {
+	// Define table
+	type OrderItem struct {
+		CreatedAt time.Time `db:"createdAt"`
+		UpdatedAt time.Time `db:"updatedAt"`
+		Id        int64     `db:"id"`
+		Qty       int64     `db:"qty"`
+	}
+
+	// Prepare parser
+	s := schema.New(schema.FromModelRef(new(OrderItem)))
+	ff := map[string]nsql.FilterParser{
+		"moreThanQty":        query.IntGreaterThanEqualFilter(s, "qty"),
+		"lessThanQty":        query.IntLessThanEqualFilter(s, "qty"),
+		"invalidMoreThanQty": query.IntGreaterThanEqualFilter(s, "qty"),
+		"invalidLessThanQty": query.IntLessThanEqualFilter(s, "qty"),
+	}
+
+	qs := map[string]string{
+		"moreThanQty":        "10",
+		"lessThanQty":        "20",
+		"invalidMoreThanQty": "A",
+		"invalidLessThanQty": "B",
+	}
+	b := query.NewFilter(qs, ff)
+
+	// Assert
+	actual := b.Args()
+	expected := map[interface{}]bool{
+		int64(10): true,
+		int64(20): true,
+	}
+
+	if len(actual) != len(expected) {
+		t.Errorf("FAILED\n  > got different values: %v, expected: %v", actual, expected)
+		return
+	}
+
+	for _, v := range actual {
+		if _, ok := expected[v]; !ok {
+			t.Errorf("FAILED\n  > got different values: %v, expected: %v", actual, expected)
+			return
+		}
+	}
+}
+
+func TestFloatBetweenFilter(t *testing.T) {
+	// Define table
+	type Task struct {
+		CreatedAt time.Time `db:"createdAt"`
+		UpdatedAt time.Time `db:"updatedAt"`
+		Id        int64     `db:"id"`
+		Progress  float64   `db:"progress"`
+	}
+
+	// Prepare parser
+	s := schema.New(schema.FromModelRef(new(Task)))
+	ff := map[string]nsql.FilterParser{
+		"moreThanProgress":        query.FloatGreaterThanEqualFilter(s, "progress"),
+		"lessThanProgress":        query.FloatLessThanEqualFilter(s, "progress"),
+		"invalidMoreThanProgress": query.FloatGreaterThanEqualFilter(s, "progress"),
+		"invalidLessThanProgress": query.FloatLessThanEqualFilter(s, "progress"),
+	}
+
+	qs := map[string]string{
+		"moreThanProgress":        "25.5",
+		"lessThanProgress":        "50.7",
+		"invalidMoreThanProgress": "A",
+		"invalidLessThanProgress": "B",
+	}
+	b := query.NewFilter(qs, ff)
+
+	// Assert
+	actual := b.Args()
+	expected := map[interface{}]bool{25.5: true, 50.7: true}
+
+	if len(actual) != len(expected) {
+		t.Errorf("FAILED\n  > got different values: %v, expected: %v", actual, expected)
+		return
+	}
+
+	for _, v := range actual {
+		if _, ok := expected[v]; !ok {
+			t.Errorf("FAILED\n  > got different values: %v, expected: %v", actual, expected)
+			return
+		}
+	}
+}
