@@ -5,6 +5,8 @@ import (
 	"github.com/nbs-go/nsql"
 	"github.com/nbs-go/nsql/op"
 	"github.com/nbs-go/nsql/option"
+	qs "github.com/nbs-go/nsql/parse/querystring"
+	"github.com/nbs-go/nsql/schema"
 )
 
 type FilterBuilder struct {
@@ -79,5 +81,38 @@ func LikeFilter(col string, likeVar op.LikeVariable, args ...interface{}) nsql.F
 
 		return w, []interface{}{qv}
 	}
+}
 
+func EqualFilter(s *schema.Schema, col string) nsql.FilterParser {
+	return func(qv string) (nsql.WhereWriter, []interface{}) {
+		w := Equal(Column(col, option.Schema(s)))
+		return w, []interface{}{qv}
+	}
+}
+
+func TimeGreaterThanEqualFilter(s *schema.Schema, col string, args ...string) nsql.FilterParser {
+	return func(qv string) (nsql.WhereWriter, []interface{}) {
+		// Parse time
+		t, ok := qs.ParseTime(qv, args...)
+		if !ok {
+			return nil, nil
+		}
+
+		// Create schema
+		w := GreaterThanEqual(Column(col, option.Schema(s)))
+		return w, []interface{}{t.UTC()}
+	}
+}
+
+func TimeLessThanEqualFilter(s *schema.Schema, col string, args ...string) nsql.FilterParser {
+	return func(qv string) (nsql.WhereWriter, []interface{}) {
+		// Parse time
+		t, ok := qs.ParseTime(qv, args...)
+		if !ok {
+			return nil, nil
+		}
+
+		w := LessThanEqual(Column(col, option.Schema(s)))
+		return w, []interface{}{t.UTC()}
+	}
 }
