@@ -125,3 +125,63 @@ func TestLikeFilter_Exact(t *testing.T) {
 	b := query.NewFilter(qs, ff)
 	test_utils.CompareInterfaceArray(t, "CORRECT LIKE ARGUMENT", b.Args(), []interface{}{"001"})
 }
+
+func TestEqualFilter_Args(t *testing.T) {
+	// Prepare parser
+	s := schema.New(schema.FromModelRef(new(Person)))
+	ff := map[string]nsql.FilterParser{
+		"id": query.EqualFilter(s, "id"),
+	}
+
+	qs := map[string]string{
+		"id": "1234",
+	}
+	b := query.NewFilter(qs, ff)
+
+	// Assert
+	actual := b.Args()
+	expected := []interface{}{"1234"}
+
+	if len(actual) != len(expected) {
+		t.Errorf("FAILED\n  > got different values: %v, expected: %v", actual, expected)
+		return
+	}
+
+	for i, v := range actual {
+		if expected[i] != v {
+			t.Errorf("FAILED\n  > got different values: %v, expected: %v", actual, expected)
+			return
+		}
+	}
+}
+
+func TestTimeBetweenFilter(t *testing.T) {
+	// Prepare parser
+	s := schema.New(schema.FromModelRef(new(Person)))
+	ff := map[string]nsql.FilterParser{
+		"fromCreatedAt": query.TimeGreaterThanEqualFilter(s, "createdAt"),
+		"toCreatedAt":   query.TimeLessThanEqualFilter(s, "createdAt"),
+	}
+
+	qs := map[string]string{
+		"fromCreatedAt": "2022-01-01T00:00:00+07:00",
+		"toCreatedAt":   "2022-01-31T00:00:00+07:00",
+	}
+	b := query.NewFilter(qs, ff)
+
+	// Assert
+	actual := b.Args()
+	expected := []interface{}{time.Unix(1640970000, 0).UTC(), time.Unix(1643562000, 0).UTC()}
+
+	if len(actual) != len(expected) {
+		t.Errorf("FAILED\n  > got different values: %v, expected: %v", actual, expected)
+		return
+	}
+
+	for i, v := range actual {
+		if expected[i] != v {
+			t.Errorf("FAILED\n  > got different values: %v, expected: %v", actual, expected)
+			return
+		}
+	}
+}
