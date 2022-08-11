@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.0
+
+- feat(mysql): Add Int and Float comparison FilterParser
+- feat(pq): Add Int and Float comparison FilterParser
+- feat(mysql): Add Equal and Time comparison FilterParser
+- feat(pq): Add Equal and Time comparison FilterParser
+
 ## 0.6.0
 
 - feat(mysql): Add query builder for MySQL / MariaDB
