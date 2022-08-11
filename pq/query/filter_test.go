@@ -159,13 +159,17 @@ func TestTimeBetweenFilter(t *testing.T) {
 	// Prepare parser
 	s := schema.New(schema.FromModelRef(new(Person)))
 	ff := map[string]nsql.FilterParser{
-		"fromCreatedAt": query.TimeGreaterThanEqualFilter(s, "createdAt"),
-		"toCreatedAt":   query.TimeLessThanEqualFilter(s, "createdAt"),
+		"fromCreatedAt":        query.TimeGreaterThanEqualFilter(s, "createdAt"),
+		"toCreatedAt":          query.TimeLessThanEqualFilter(s, "createdAt"),
+		"invalidFromCreatedAt": query.TimeGreaterThanEqualFilter(s, "createdAt"),
+		"invalidToCreatedAt":   query.TimeLessThanEqualFilter(s, "createdAt"),
 	}
 
 	qs := map[string]string{
-		"fromCreatedAt": "2022-01-01T00:00:00+07:00",
-		"toCreatedAt":   "2022-01-31T00:00:00+07:00",
+		"fromCreatedAt":        "2022-01-01T00:00:00+07:00",
+		"toCreatedAt":          "2022-01-31T00:00:00+07:00",
+		"invalidFromCreatedAt": "NOT A TIME",
+		"invalidToCreatedAt":   "NOT A TIME",
 	}
 	b := query.NewFilter(qs, ff)
 
