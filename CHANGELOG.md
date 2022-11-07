@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.1
+
+- fix(pq): Add RETURNING pk on generated Insert query
+
 ## 0.7.0
 
 - feat(mysql): Add Int and Float comparison FilterParser
