@@ -14,12 +14,12 @@ func TestInsert(t *testing.T) {
 	// Test #1
 	test_utils.CompareString(t, "INSERT ALL COLUMNS",
 		query.Insert(s, "*").Build(),
-		`INSERT INTO "Person"("createdAt", "updatedAt", "fullName") VALUES (:createdAt, :updatedAt, :fullName)`)
+		`INSERT INTO "Person"("createdAt", "updatedAt", "fullName") VALUES (:createdAt, :updatedAt, :fullName) RETURNING "id"`)
 
 	// Test #2
 	test_utils.CompareString(t, "INSERT SPECIFIED COLUMNS",
 		query.Insert(s, "id", "fullName", "age").Build(),
-		`INSERT INTO "Person"("id", "fullName") VALUES (:id, :fullName)`,
+		`INSERT INTO "Person"("id", "fullName") VALUES (:id, :fullName) RETURNING "id"`,
 	)
 
 	// Init schema without auto increment
@@ -28,6 +28,6 @@ func TestInsert(t *testing.T) {
 	// Test #3
 	test_utils.CompareString(t, "INSERT ALL (NO AUTO INCREMENT)",
 		query.Insert(s, "*").Build(),
-		`INSERT INTO "Person"("createdAt", "updatedAt", "id", "fullName") VALUES (:createdAt, :updatedAt, :id, :fullName)`,
+		`INSERT INTO "Person"("createdAt", "updatedAt", "id", "fullName") VALUES (:createdAt, :updatedAt, :id, :fullName) RETURNING "id"`,
 	)
 }

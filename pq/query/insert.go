@@ -12,6 +12,7 @@ type InsertBuilder struct {
 	tableName string
 	columns   []string
 	format    op.ColumnFormat
+	pk        string
 }
 
 func (b *InsertBuilder) Build() string {
@@ -28,13 +29,20 @@ func (b *InsertBuilder) Build() string {
 	columns := strings.Join(columnQueries, nsql.Separator)
 	values := strings.Join(valueQueries, nsql.Separator)
 
-	return fmt.Sprintf(`INSERT INTO "%s"(%s) VALUES (%s)`, b.tableName, columns, values)
+	// Compose returning
+	returning := ""
+	if b.pk != "" {
+		returning = fmt.Sprintf(` RETURNING "%s"`, b.pk)
+	}
+
+	return fmt.Sprintf(`INSERT INTO "%s"(%s) VALUES (%s)%s`, b.tableName, columns, values, returning)
 }
 
 func Insert(s *schema.Schema, column string, columnN ...string) *InsertBuilder {
 	// Init builder
 	b := InsertBuilder{
 		tableName: s.TableName(),
+		pk:        s.PrimaryKey(),
 	}
 
 	var columns []string

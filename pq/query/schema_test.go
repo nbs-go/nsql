@@ -26,7 +26,7 @@ func TestSchemaBuilder(t *testing.T) {
 
 	// Test #2
 	test_utils.CompareString(t, "INSERT", sb.Insert(),
-		`INSERT INTO "Customer"("createdAt", "updatedAt", "fullName", "gender") VALUES (:createdAt, :updatedAt, :fullName, :gender)`)
+		`INSERT INTO "Customer"("createdAt", "updatedAt", "fullName", "gender") VALUES (:createdAt, :updatedAt, :fullName, :gender) RETURNING "id"`)
 
 	// Test #3
 	test_utils.CompareString(t, "UPDATE", sb.Update(),
