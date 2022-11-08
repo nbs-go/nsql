@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.8.0
+
+- feat(pq): Add utility to Parse postgres error
+
 ## v0.7.1
 
 - fix(pq): Add RETURNING pk on generated Insert query
