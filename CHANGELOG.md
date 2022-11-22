@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.9.0
+
+- feat(mysql): Add select column as query
+- feat(pq): Add select column as query
+
 ## v0.8.0
 
 - feat(pq): Add utility to Parse postgres error
