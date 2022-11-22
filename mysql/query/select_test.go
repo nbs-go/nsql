@@ -441,3 +441,16 @@ func TestJoinInvalidBindVarCondition(t *testing.T) {
 		"SELECT `p`.`createdAt` AS `p.createdAt`, `p`.`updatedAt` AS `p.updatedAt`, `p`.`id` AS `p.id`, `p`.`fullName` AS `p.fullName` FROM `Person` AS `p` INNER JOIN `VehicleOwnership` AS `vo` ON `p`.`id` = `vo`.`personId` WHERE `vo`.`createdAt` >= ?",
 	)
 }
+
+func TestSelectAsField(t *testing.T) {
+	// Process actual value
+	actual := query.Select(query.Column("id", option.As("personId"))).
+		From(person).
+		Build()
+
+	// Compare
+	expected := "SELECT `Person`.`id` AS `personId` FROM `Person`"
+	if actual != expected {
+		t.Errorf("%s: FAILED\n  > got different generated query. Query = %s", expected, actual)
+	}
+}

@@ -27,10 +27,14 @@ func Column(col string, args ...interface{}) *columnWriter {
 		format = op.NonAmbiguousColumn
 	}
 
+	// Get alias
+	as, _ := opts.GetString(option.AsKey)
+
 	return &columnWriter{
 		name:      col,
 		tableName: tableName,
 		format:    format,
+		as:        as,
 	}
 }
 
@@ -83,6 +87,7 @@ type columnWriter struct {
 	tableName string
 	tableAs   string
 	format    op.ColumnFormat
+	as        string
 }
 
 func (w *columnWriter) VariableQuery() string {
@@ -125,7 +130,11 @@ func (w *columnWriter) IsAllColumns() bool {
 }
 
 func (w *columnWriter) SelectQuery() string {
-	return w.ColumnQuery()
+	q := w.ColumnQuery()
+	if w.as != "" {
+		q = fmt.Sprintf("%s AS `%s`", q, w.as)
+	}
+	return q
 }
 
 func (w *columnWriter) GetTableName() string {
