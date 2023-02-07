@@ -21,6 +21,8 @@ const (
 	NotBetween
 	In
 	NotIn
+	Is
+	IsNot
 
 	// -----------------
 	// Logical Operators

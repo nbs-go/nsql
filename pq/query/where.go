@@ -23,6 +23,8 @@ func newWhereComparisonWriter(col nsql.ColumnWriter, operator op.Operator, args 
 			v = new(bindVar)
 		case op.Between, op.NotBetween:
 			v = new(betweenBindVar)
+		case op.Is, op.IsNot:
+			v = new(nullVar)
 		}
 	}
 
@@ -115,6 +117,14 @@ func In(col nsql.ColumnWriter, argCount int, args ...interface{}) *whereCompareW
 
 func NotIn(col nsql.ColumnWriter, argCount int, args ...interface{}) *whereCompareWriter {
 	return newInWhereComparisonWriter(col, argCount, op.NotIn, args)
+}
+
+func IsNull(col nsql.ColumnWriter, args ...interface{}) *whereCompareWriter {
+	return newWhereComparisonWriter(col, op.Is, args)
+}
+
+func IsNotNull(col nsql.ColumnWriter, args ...interface{}) *whereCompareWriter {
+	return newWhereComparisonWriter(col, op.IsNot, args)
 }
 
 // whereLogicWriter
