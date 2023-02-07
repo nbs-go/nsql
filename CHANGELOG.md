@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.10.0
+
+- feat(mysql): Add IsNull and IsNotNull conditional operator
+- feat(pq): Add IsNull and IsNotNull conditional operator
+
 ## v0.9.0
 
 - feat(mysql): Add select column as query
