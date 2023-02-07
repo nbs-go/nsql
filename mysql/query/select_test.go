@@ -454,3 +454,31 @@ func TestSelectAsField(t *testing.T) {
 		t.Errorf("%s: FAILED\n  > got different generated query. Query = %s", expected, actual)
 	}
 }
+
+func TestIsNull(t *testing.T) {
+	// Process actual value
+	actual := query.Select(query.Column("id")).
+		From(person).
+		Where(query.IsNull(query.Column("fullName"))).
+		Build()
+
+	// Compare
+	expected := "SELECT `Person`.`id` FROM `Person` WHERE `Person`.`fullName` IS NULL"
+	if actual != expected {
+		t.Errorf("%s: FAILED\n  > got different generated query. Query = %s", expected, actual)
+	}
+}
+
+func TestIsNotNull(t *testing.T) {
+	// Process actual value
+	actual := query.Select(query.Column("id")).
+		From(person).
+		Where(query.IsNotNull(query.Column("fullName"))).
+		Build()
+
+	// Compare
+	expected := "SELECT `Person`.`id` FROM `Person` WHERE `Person`.`fullName` IS NOT NULL"
+	if actual != expected {
+		t.Errorf("%s: FAILED\n  > got different generated query. Query = %s", expected, actual)
+	}
+}
