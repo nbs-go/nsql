@@ -46,16 +46,18 @@ func NewFilter(qs map[string]string, funcMap map[string]nsql.FilterParser) *Filt
 
 		w, args := fn(v)
 
-		// If writer is empty or arguments 0, then skip
-		if w == nil || len(args) == 0 {
+		// If writer is empty, then skip
+		if w == nil {
 			continue
 		}
 
-		// Set writers and arguments
+		// Append condition
 		b.conditions = append(b.conditions, w)
 
-		// Merge arguments
-		b.args = append(b.args, args...)
+		// If arguments is exists, then merge arguments
+		if len(args) > 0 {
+			b.args = append(b.args, args...)
+		}
 	}
 
 	return &b
