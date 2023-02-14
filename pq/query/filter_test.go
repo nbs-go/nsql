@@ -8,6 +8,7 @@ import (
 	"github.com/nbs-go/nsql/pq/query"
 	"github.com/nbs-go/nsql/schema"
 	"github.com/nbs-go/nsql/test_utils"
+	"strings"
 	"testing"
 	"time"
 )
@@ -279,5 +280,35 @@ func TestFloatBetweenFilter(t *testing.T) {
 			t.Errorf("FAILED\n  > got different values: %v, expected: %v", actual, expected)
 			return
 		}
+	}
+}
+
+func TestStaticArgFilter(t *testing.T) {
+	// Init filter function mapper
+	ff := map[string]nsql.FilterParser{
+		"isActive": func(queryValue string) (nsql.WhereWriter, []interface{}) {
+			if strings.ToLower(queryValue) != "true" {
+				return nil, nil
+			}
+
+			// Create filter
+			w := query.IsNotNull(query.Column("statusId", option.Schema(order)))
+
+			return w, nil
+		},
+	}
+
+	// Get actual value
+	qs := map[string]string{
+		"isActive": "true",
+	}
+	b := query.NewFilter(qs, ff)
+	actual := b.Conditions().WhereQuery()
+
+	// Assert
+	expected := `"Order"."statusId" IS NOT NULL`
+	if actual != expected {
+		t.Errorf("FAILED\n  > got different values: %v, expected: %v", actual, expected)
+		return
 	}
 }
