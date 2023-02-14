@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.11.0
+
+- feat(mysql): Allow parsing Filters that does not have bound arguments to pass (e.g. is null / is not null)
+- feat(pg): Allow parsing Filters that does not have bound arguments to pass (e.g. is null / is not null)
+
 ## v0.10.0
 
 - feat(mysql): Add IsNull and IsNotNull conditional operator
