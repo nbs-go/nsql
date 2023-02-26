@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.12.0
+
+- feat(pg): Add JSON Column query writer
+
 ## v0.11.0
 
 - feat(mysql): Allow parsing Filters that does not have bound arguments to pass (e.g. is null / is not null)
