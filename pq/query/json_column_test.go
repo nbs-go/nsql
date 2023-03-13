@@ -24,11 +24,9 @@ type ContentTag struct {
 	Tag       string    `db:"tag"`
 }
 
-var content = schema.New(schema.FromModelRef(Content{}))
-var contentTag = schema.New(schema.FromModelRef(ContentTag{}))
-
 func TestSelectJsonColumn1(t *testing.T) {
 	// Process actual value
+	content := schema.New(schema.FromModelRef(Content{}))
 	actual := query.Select(query.JsonColumn("content.title")).
 		From(content).
 		Build()
@@ -42,8 +40,9 @@ func TestSelectJsonColumn1(t *testing.T) {
 
 func TestSelectJsonColumn1_As(t *testing.T) {
 	// Process actual value
+	content := schema.New(schema.FromModelRef(Content{}), schema.As("c"))
 	actual := query.Select(query.JsonColumn("content.title", option.As("title"))).
-		From(content, option.As("c")).
+		From(content).
 		Build()
 
 	// Compare
@@ -55,6 +54,7 @@ func TestSelectJsonColumn1_As(t *testing.T) {
 
 func TestSelectJsonColumn1_WhereLike(t *testing.T) {
 	// Process actual value
+	content := schema.New(schema.FromModelRef(Content{}))
 	actual := query.Select(query.JsonColumn("content.title")).
 		From(content).
 		Where(query.Like(query.JsonColumn("content.title"))).
@@ -69,6 +69,7 @@ func TestSelectJsonColumn1_WhereLike(t *testing.T) {
 
 func TestSelectJsonColumn2(t *testing.T) {
 	// Process actual value
+	content := schema.New(schema.FromModelRef(Content{}))
 	actual := query.Select(query.JsonColumn("content.image.fileName", option.Schema(content))).
 		From(content).
 		Build()
@@ -82,6 +83,7 @@ func TestSelectJsonColumn2(t *testing.T) {
 
 func TestSelectJsonColumn2_As(t *testing.T) {
 	// Process actual value
+	content := schema.New(schema.FromModelRef(Content{}))
 	actual := query.Select(query.JsonColumn("content.image.fileName", option.As("fileName"))).
 		From(content).
 		Build()
@@ -95,6 +97,7 @@ func TestSelectJsonColumn2_As(t *testing.T) {
 
 func TestSelectJsonColumn_FlagSkip(t *testing.T) {
 	// Process actual value
+	var content = schema.New(schema.FromModelRef(Content{}))
 	actual := query.Select(
 		query.Column("content"),
 		query.JsonColumn("noContent.title"),
@@ -111,6 +114,7 @@ func TestSelectJsonColumn_FlagSkip(t *testing.T) {
 
 func TestSelectJsonColumn_AsWhereLike(t *testing.T) {
 	// Process actual value
+	content := schema.New(schema.FromModelRef(Content{}))
 	titleCol := query.JsonColumn("content.title", option.As("title"))
 	actual := query.Select(titleCol).
 		From(content).
@@ -126,11 +130,12 @@ func TestSelectJsonColumn_AsWhereLike(t *testing.T) {
 
 func TestSelectJsonColumn_Join(t *testing.T) {
 	// Process actual value
+	content := schema.New(schema.FromModelRef(Content{}), schema.As("c"))
+	contentTag := schema.New(schema.FromModelRef(ContentTag{}), schema.As("ct"))
 	actual := query.Select(query.JsonColumn("content.title", option.Schema(content), option.As("title"))).
-		From(contentTag, option.As("ct")).
+		From(contentTag).
 		Join(content,
 			query.Equal(query.Column("contentId"), query.On("id")),
-			option.As("c"),
 		).
 		Where(
 			query.Equal(query.Column("tag", option.Schema(contentTag))),
@@ -146,6 +151,7 @@ func TestSelectJsonColumn_Join(t *testing.T) {
 
 func TestSelectJsonColumn_WhereNotNull(t *testing.T) {
 	// Process actual value
+	var content = schema.New(schema.FromModelRef(Content{}))
 	actual := query.Select(query.Column("*")).
 		From(content).
 		Where(query.IsNotNull(query.JsonColumn("content.title"))).

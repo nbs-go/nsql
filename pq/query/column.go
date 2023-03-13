@@ -14,11 +14,12 @@ func Column(col string, args ...interface{}) *columnWriter {
 
 	// Get tableName
 	s := opts.GetSchema()
-	var tableName string
+	var tableName, tableAs string
 	if s == nil {
 		tableName = fromTableFlag
 	} else {
 		tableName = s.TableName()
+		tableAs = s.As()
 	}
 
 	// Get format
@@ -33,6 +34,7 @@ func Column(col string, args ...interface{}) *columnWriter {
 	return &columnWriter{
 		name:      col,
 		tableName: tableName,
+		tableAs:   tableAs,
 		format:    format,
 		as:        as,
 	}
@@ -90,6 +92,13 @@ type columnWriter struct {
 	as        string
 }
 
+func (w *columnWriter) GetSchemaRef() schema.Reference {
+	if w.tableAs != "" {
+		return schema.Reference(w.tableAs)
+	}
+	return schema.Reference(w.tableName)
+}
+
 func (w *columnWriter) VariableQuery() string {
 	return w.ColumnQuery()
 }
@@ -106,6 +115,7 @@ func (w *columnWriter) SetSchema(s *schema.Schema) {
 		return
 	}
 	w.tableName = s.TableName()
+	w.tableAs = s.As()
 }
 
 func (w *columnWriter) Expand(args ...interface{}) nsql.SelectWriter {

@@ -18,6 +18,13 @@ type JsonColumnWriter struct {
 	as        string
 }
 
+func (w *JsonColumnWriter) GetSchemaRef() schema.Reference {
+	if w.tableAs != "" {
+		return schema.Reference(w.tableAs)
+	}
+	return schema.Reference(w.tableName)
+}
+
 func JsonColumn(column string, args ...interface{}) *JsonColumnWriter {
 	// If column does not contain ".", then panic
 	tmp := strings.Split(column, ".")
@@ -37,11 +44,12 @@ func JsonColumn(column string, args ...interface{}) *JsonColumnWriter {
 
 	// Get tableName
 	s := opts.GetSchema()
-	var tableName string
+	var tableName, tableAs string
 	if s == nil {
 		tableName = fromTableFlag
 	} else {
 		tableName = s.TableName()
+		tableAs = s.As()
 	}
 
 	// Get alias
@@ -51,7 +59,7 @@ func JsonColumn(column string, args ...interface{}) *JsonColumnWriter {
 		name:      col,
 		attrs:     attrs,
 		tableName: tableName,
-		tableAs:   "",
+		tableAs:   tableAs,
 		as:        as,
 	}
 }
@@ -68,6 +76,7 @@ func (w *JsonColumnWriter) SetSchema(s *schema.Schema) {
 		return
 	}
 	w.tableName = s.TableName()
+	w.tableAs = s.As()
 }
 
 func (w *JsonColumnWriter) ColumnQuery() string {

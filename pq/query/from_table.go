@@ -3,6 +3,7 @@ package query
 import (
 	"fmt"
 	"github.com/nbs-go/nsql"
+	"github.com/nbs-go/nsql/schema"
 	"strings"
 )
 
@@ -10,14 +11,21 @@ func newTableWriter(tableName string, as string) *tableWriter {
 	return &tableWriter{
 		tableName: tableName,
 		as:        as,
-		joints:    map[string]nsql.JoinWriter{},
+		joints:    map[schema.Reference]nsql.JoinWriter{},
 	}
 }
 
 type tableWriter struct {
 	tableName string
 	as        string
-	joints    map[string]nsql.JoinWriter
+	joints    map[schema.Reference]nsql.JoinWriter
+}
+
+func (s *tableWriter) GetSchemaRef() schema.Reference {
+	if s.as != "" {
+		return schema.Reference(s.as)
+	}
+	return schema.Reference(s.tableName)
 }
 
 func (s *tableWriter) Join(j nsql.JoinWriter) {
@@ -26,7 +34,7 @@ func (s *tableWriter) Join(j nsql.JoinWriter) {
 	j.SetIndex(idx)
 
 	// Add joints
-	s.joints[j.GetTableName()] = j
+	s.joints[j.GetSchemaRef()] = j
 }
 
 func (s *tableWriter) GetTableName() string {

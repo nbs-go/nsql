@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"github.com/nbs-go/nsql"
 	"github.com/nbs-go/nsql/op"
+	"github.com/nbs-go/nsql/schema"
 )
 
 type joinWriter struct {
 	method      op.JoinMethod
-	table       *nsql.Table
+	table       *schema.Schema
 	onCondition nsql.WhereWriter
 	index       int
+}
+
+func (j *joinWriter) GetSchemaRef() schema.Reference {
+	return j.table.Ref()
 }
 
 func (j *joinWriter) GetIndex() int {
@@ -22,7 +27,7 @@ func (j *joinWriter) SetIndex(n int) {
 }
 
 func (j *joinWriter) GetTableName() string {
-	return j.table.Schema.TableName()
+	return j.table.TableName()
 }
 
 func (j *joinWriter) JoinQuery() string {
@@ -42,9 +47,9 @@ func (j *joinWriter) JoinQuery() string {
 
 	// Generate table name
 	table := j.table
-	tableName := fmt.Sprintf(`"%s"`, table.Schema.TableName())
-	if table.As != "" {
-		tableName += fmt.Sprintf(` AS "%s"`, table.As)
+	tableName := fmt.Sprintf(`"%s"`, table.TableName())
+	if table.As() != "" {
+		tableName += fmt.Sprintf(` AS "%s"`, table.As())
 	}
 
 	// Write condition
