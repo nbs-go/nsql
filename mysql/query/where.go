@@ -152,7 +152,7 @@ func resolveFromTableFlag(ww nsql.WhereWriter, from *schema.Schema) {
 	}
 }
 
-func filterWhereWriters(ww nsql.WhereWriter, tables map[string]nsql.Table) nsql.WhereWriter {
+func filterWhereWriters(ww nsql.WhereWriter, tables map[schema.Reference]*schema.Schema) nsql.WhereWriter {
 	// Switch type
 	switch w := ww.(type) {
 	case nsql.WhereLogicWriter:
@@ -170,13 +170,13 @@ func filterWhereWriters(ww nsql.WhereWriter, tables map[string]nsql.Table) nsql.
 		w.SetConditions(conditions)
 	case nsql.WhereCompareWriter:
 		// Check if condition is registered in table
-		table, ok := tables[w.GetTableName()]
+		table, ok := tables[w.GetSchemaRef()]
 		if !ok {
 			return nil
 		}
 
 		// Set alias
-		w.SetTableAs(table.As)
+		w.SetTableAs(table.As())
 	}
 	return ww
 }
@@ -206,7 +206,7 @@ func resolveJoinTableFlag(ww nsql.WhereWriter, joinTable *schema.Schema) {
 	}
 }
 
-func setJoinTableAs(ww nsql.WhereWriter, joinTable *nsql.Table, tableRefs map[string]nsql.Table) {
+func setJoinTableAs(ww nsql.WhereWriter, joinTable *schema.Schema, tableRefs map[schema.Reference]*schema.Schema) {
 	switch w := ww.(type) {
 	case nsql.WhereLogicWriter:
 		// Get conditions
@@ -227,7 +227,7 @@ func setJoinTableAs(ww nsql.WhereWriter, joinTable *nsql.Table, tableRefs map[st
 	}
 }
 
-func setJoinColumnTableAs(column nsql.ColumnWriter, joinTable *nsql.Table, tableRefs map[string]nsql.Table) {
+func setJoinColumnTableAs(column nsql.ColumnWriter, joinTable *schema.Schema, tableRefs map[schema.Reference]*schema.Schema) {
 	// Get arguments
 	tableName := column.GetTableName()
 
@@ -238,23 +238,24 @@ func setJoinColumnTableAs(column nsql.ColumnWriter, joinTable *nsql.Table, table
 	col := column.GetColumn()
 
 	// Check in joinSchema
-	if tableName == joinTable.Schema.TableName() {
-		if !joinTable.Schema.IsColumnExist(col) {
-			panic(fmt.Errorf(`column "%s" is not declared in Table "%s"`, col, joinTable.Schema.TableName()))
+	if tableName == joinTable.TableName() {
+		if !joinTable.IsColumnExist(col) {
+			panic(fmt.Errorf(`column "%s" is not declared in Table "%s"`, col, joinTable.TableName()))
 		}
 		// Set alias
-		column.SetTableAs(joinTable.As)
+		column.SetTableAs(joinTable.As())
 		return
 	}
 
 	// Check in tableRefs
-	tRef, tRefOk := tableRefs[tableName]
+	sRef := column.GetSchemaRef()
+	tRef, tRefOk := tableRefs[sRef]
 	if !tRefOk {
 		panic(fmt.Errorf(`table "%s" is not declared in Query Builder`, tableName))
 	}
 	// Check against column
-	if !tRef.Schema.IsColumnExist(col) {
+	if !tRef.IsColumnExist(col) {
 		panic(fmt.Errorf(`column "%s" is not declared in Table "%s"`, tableName, col))
 	}
-	column.SetTableAs(tRef.As)
+	column.SetTableAs(tRef.As())
 }

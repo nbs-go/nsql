@@ -45,9 +45,10 @@ func TestSelectBasicQuery(t *testing.T) {
 		"SELECT `Person`.`createdAt`, `Person`.`updatedAt`, `Person`.`id`, `Person`.`fullName` FROM `Person`",
 	)
 
+	pSchema := schema.New(schema.FromModelRef(Person{}), schema.As("p"))
 	testSelectBuilder(t, "SELECT WITH ALIAS TABLE",
 		query.Select(query.Column("*")).
-			From(person, option.As(`p`)),
+			From(pSchema),
 		"SELECT `p`.`createdAt`, `p`.`updatedAt`, `p`.`id`, `p`.`fullName` FROM `Person` AS `p`",
 	)
 
@@ -94,14 +95,14 @@ func TestSelectBasicQuery(t *testing.T) {
 
 	testSelectBuilder(t, "SELECT WITH ORDER BY WITH ALIAS TABLE",
 		query.Select(query.Column("*")).
-			From(person, option.As(`p`)).
-			OrderBy(`createdAt`, option.SortDirection(op.Descending), option.Schema(person)),
+			From(pSchema).
+			OrderBy(`createdAt`, option.SortDirection(op.Descending), option.Schema(pSchema)),
 		"SELECT `p`.`createdAt`, `p`.`updatedAt`, `p`.`id`, `p`.`fullName` FROM `Person` AS `p` ORDER BY `p`.`createdAt` DESC",
 	)
 
 	testSelectBuilder(t, "SELECT WITH ORDER BY, LIMIT AND SKIP",
 		query.Select(query.Column("*")).
-			From(person, option.As(`p`)).
+			From(pSchema).
 			OrderBy(`createdAt`, option.SortDirection(op.Descending)).
 			Limit(10).
 			Skip(0),
@@ -110,7 +111,7 @@ func TestSelectBasicQuery(t *testing.T) {
 
 	testSelectBuilder(t, "SELECT WITH ORDER BY USING UNDECLARED COLUMN",
 		query.Select(query.Column("*")).
-			From(person, option.As(`p`)).
+			From(pSchema).
 			OrderBy("age", option.SortDirection(op.Descending)),
 		"SELECT `p`.`createdAt`, `p`.`updatedAt`, `p`.`id`, `p`.`fullName` FROM `Person` AS `p`",
 	)
@@ -124,14 +125,14 @@ func TestSelectBasicQuery(t *testing.T) {
 
 	testSelectBuilder(t, "SELECT WITH WHERE AND",
 		query.Select(query.Column("*")).
-			From(person, option.As(`p`)).
-			Where(query.Equal(query.Column(person.PrimaryKey())), query.Equal(query.Column(`fullName`))),
+			From(pSchema).
+			Where(query.Equal(query.Column(pSchema.PrimaryKey())), query.Equal(query.Column(`fullName`))),
 		"SELECT `p`.`createdAt`, `p`.`updatedAt`, `p`.`id`, `p`.`fullName` FROM `Person` AS `p` WHERE `p`.`id` = ? AND `p`.`fullName` = ?",
 	)
 
 	testSelectBuilder(t, "SELECT WITH WHERE AND OR NESTED",
 		query.Select(query.Column("*")).
-			From(person, option.As(`p`)).
+			From(pSchema).
 			Where(
 				query.Or(
 					query.Like(query.Column(`fullName`)),
@@ -177,9 +178,10 @@ func TestSelectCount(t *testing.T) {
 		"SELECT COUNT(`Person`.`id`) AS `count` FROM `Person`",
 	)
 
+	pSchema := schema.New(schema.FromModelRef(Person{}), schema.As("p"))
 	testSelectBuilder(t, "COUNT BY ID WITH ALIAS TABLE",
-		query.Select(query.Count(`id`, option.Schema(person))).
-			From(person, option.As(`p`)),
+		query.Select(query.Count(`id`, option.Schema(pSchema))).
+			From(pSchema),
 		"SELECT COUNT(`p`.`id`) FROM `Person` AS `p`",
 	)
 }
@@ -198,9 +200,10 @@ func TestEmptyWhere(t *testing.T) {
 }
 
 func TestIsExists(t *testing.T) {
+	pSchema := schema.New(schema.FromModelRef(Person{}), schema.As("p"))
 	testSelectBuilder(t, "COUNT BY ID COMPARE BY INT VALUE",
 		query.Select(query.GreaterThan(query.Count(`id`), query.IntVar(0), option.As("isExists"))).
-			From(person, option.As(`p`)),
+			From(pSchema),
 		"SELECT COUNT(`p`.`id`) > 0 AS `isExists` FROM `Person` AS `p`",
 	)
 }
@@ -242,38 +245,41 @@ func TestSelectJoin(t *testing.T) {
 		"SELECT `Person`.`createdAt` AS `Person.createdAt`, `Person`.`updatedAt` AS `Person.updatedAt`, `Person`.`id` AS `Person.id`, `Person`.`fullName` AS `Person.fullName`, `VehicleOwnership`.`createdAt` AS `VehicleOwnership.createdAt`, `VehicleOwnership`.`updatedAt` AS `VehicleOwnership.updatedAt`, `VehicleOwnership`.`id` AS `VehicleOwnership.id`, `VehicleOwnership`.`personId` AS `VehicleOwnership.personId`, `VehicleOwnership`.`vehicleId` AS `VehicleOwnership.vehicleId`, `Vehicle`.`createdAt` AS `Vehicle.createdAt`, `Vehicle`.`updatedAt` AS `Vehicle.updatedAt`, `Vehicle`.`id` AS `Vehicle.id`, `Vehicle`.`name` AS `Vehicle.name`, `Vehicle`.`category` AS `Vehicle.category` FROM `Person` INNER JOIN `VehicleOwnership` ON `Person`.`id` = `VehicleOwnership`.`personId` INNER JOIN `Vehicle` ON `VehicleOwnership`.`vehicleId` = `Vehicle`.`id`",
 	)
 
+	pSchema := schema.New(schema.FromModelRef(Person{}), schema.As("p"))
+	voSchema := schema.New(schema.FromModelRef(VehicleOwnership{}), schema.As("vo"))
+	vSchema := schema.New(schema.FromModelRef(Vehicle{}), schema.As("v"))
 	testSelectBuilder(t, "MANY TO MANY WITH ALIAS",
 		query.Select(
 			query.Column("*"),
-			query.Column("*", option.Schema(vehicleOwnership)),
-			query.Column("*", option.Schema(vehicle)),
+			query.Column("*", option.Schema(voSchema)),
+			query.Column("*", option.Schema(vSchema)),
 		).
-			From(person, option.As(`p`)).
-			Join(vehicleOwnership, query.Equal(query.Column(`id`), query.On(`personId`)), option.As(`vo`)).
-			Join(vehicle, query.Equal(query.Column(`vehicleId`, option.Schema(vehicleOwnership)), query.On(`id`)), option.As(`v`)),
+			From(pSchema).
+			Join(voSchema, query.Equal(query.Column(`id`), query.On(`personId`))).
+			Join(vSchema, query.Equal(query.Column(`vehicleId`, option.Schema(voSchema)), query.On(`id`))),
 		"SELECT `p`.`createdAt` AS `p.createdAt`, `p`.`updatedAt` AS `p.updatedAt`, `p`.`id` AS `p.id`, `p`.`fullName` AS `p.fullName`, `vo`.`createdAt` AS `vo.createdAt`, `vo`.`updatedAt` AS `vo.updatedAt`, `vo`.`id` AS `vo.id`, `vo`.`personId` AS `vo.personId`, `vo`.`vehicleId` AS `vo.vehicleId`, `v`.`createdAt` AS `v.createdAt`, `v`.`updatedAt` AS `v.updatedAt`, `v`.`id` AS `v.id`, `v`.`name` AS `v.name`, `v`.`category` AS `v.category` FROM `Person` AS `p` INNER JOIN `VehicleOwnership` AS `vo` ON `p`.`id` = `vo`.`personId` INNER JOIN `Vehicle` AS `v` ON `vo`.`vehicleId` = `v`.`id`",
 	)
 
 	testSelectBuilder(t, "INNER JOIN WITH FILTER",
 		query.Select(query.Column("*")).
-			From(person, option.As(`p`)).
-			Join(vehicleOwnership,
+			From(pSchema).
+			Join(voSchema,
 				query.Equal(query.Column(`id`), query.On(`personId`)),
-				option.JoinMethod(op.InnerJoin), option.As(`vo`),
+				option.JoinMethod(op.InnerJoin),
 			).
-			Where(query.GreaterThanEqual(query.Column(`createdAt`, option.Schema(vehicleOwnership)))),
+			Where(query.GreaterThanEqual(query.Column(`createdAt`, option.Schema(voSchema)))),
 		"SELECT `p`.`createdAt` AS `p.createdAt`, `p`.`updatedAt` AS `p.updatedAt`, `p`.`id` AS `p.id`, `p`.`fullName` AS `p.fullName` FROM `Person` AS `p` INNER JOIN `VehicleOwnership` AS `vo` ON `p`.`id` = `vo`.`personId` WHERE `vo`.`createdAt` >= ?",
 	)
 
 	testSelectBuilder(t, "INNER JOIN WITH AND CONDITION",
-		query.Select(query.Column("*"), query.Column(`vehicleId`, option.Schema(vehicleOwnership))).
-			From(person, option.As(`p`)).
-			Join(vehicleOwnership,
+		query.Select(query.Column("*"), query.Column(`vehicleId`, option.Schema(voSchema))).
+			From(pSchema).
+			Join(voSchema,
 				query.And(
 					query.Equal(query.Column(`id`), query.On(`personId`)),
-					query.GreaterThan(query.Column(`createdAt`, option.Schema(vehicleOwnership))),
+					query.GreaterThan(query.Column(`createdAt`, option.Schema(voSchema))),
 				),
-				option.JoinMethod(op.InnerJoin), option.As(`vo`),
+				option.JoinMethod(op.InnerJoin),
 			),
 		"SELECT `p`.`createdAt` AS `p.createdAt`, `p`.`updatedAt` AS `p.updatedAt`, `p`.`id` AS `p.id`, `p`.`fullName` AS `p.fullName`, `vo`.`vehicleId` AS `vo.vehicleId` FROM `Person` AS `p` INNER JOIN `VehicleOwnership` AS `vo` ON `p`.`id` = `vo`.`personId` AND `vo`.`createdAt` > ?",
 	)
@@ -341,7 +347,8 @@ func TestFromConstructor(t *testing.T) {
 		"SELECT COUNT(*) FROM `Person`",
 	)
 
-	b = query.From(person, option.As(`p`))
+	pSchema := schema.New(schema.FromModelRef(Person{}), schema.As("p"))
+	b = query.From(pSchema)
 	test_utils.CompareString(t, "SELECT ALL WITH ALIAS",
 		b.Select(query.Column("*")).Build(),
 		"SELECT `p`.`createdAt`, `p`.`updatedAt`, `p`.`id`, `p`.`fullName` FROM `Person` AS `p`",
@@ -383,7 +390,8 @@ func TestUndeclaredWhereColumn(t *testing.T) {
 }
 
 func TestReusableWhereCondition(t *testing.T) {
-	b := query.Select(query.Column("*")).From(person, option.As(`p`)).Where(query.GreaterThan(query.Column(`createdAt`)))
+	pSchema := schema.New(schema.FromModelRef(Person{}), schema.As("p"))
+	b := query.Select(query.Column("*")).From(pSchema).Where(query.GreaterThan(query.Column(`createdAt`)))
 	b.Build()
 
 	q := b.Select(query.Count("*")).Build()
@@ -411,33 +419,37 @@ func TestResetLimitSkip(t *testing.T) {
 }
 
 func TestJoinBindVarCondition(t *testing.T) {
+	pSchema := schema.New(schema.FromModelRef(Person{}), schema.As("p"))
+	voSchema := schema.New(schema.FromModelRef(VehicleOwnership{}), schema.As("vo"))
 	testSelectBuilder(t, "INNER JOIN WITH BIND VAR CONDITION",
 		query.Select(query.Column("*")).
-			From(person, option.As(`p`)).
-			Join(vehicleOwnership,
+			From(pSchema).
+			Join(voSchema,
 				query.And(
 					query.Equal(query.Column(`id`), query.On(`personId`)),
-					query.Equal(query.Column(`vehicleId`, option.Schema(vehicleOwnership)), query.BindVar()),
+					query.Equal(query.Column(`vehicleId`, option.Schema(voSchema)), query.BindVar()),
 				),
 				option.JoinMethod(op.InnerJoin), option.As(`vo`),
 			).
-			Where(query.GreaterThanEqual(query.Column(`createdAt`, option.Schema(vehicleOwnership)))),
+			Where(query.GreaterThanEqual(query.Column(`createdAt`, option.Schema(voSchema)))),
 		"SELECT `p`.`createdAt` AS `p.createdAt`, `p`.`updatedAt` AS `p.updatedAt`, `p`.`id` AS `p.id`, `p`.`fullName` AS `p.fullName` FROM `Person` AS `p` INNER JOIN `VehicleOwnership` AS `vo` ON `p`.`id` = `vo`.`personId` AND `vo`.`vehicleId` = ? WHERE `vo`.`createdAt` >= ?",
 	)
 }
 
 func TestJoinInvalidBindVarCondition(t *testing.T) {
+	pSchema := schema.New(schema.FromModelRef(Person{}), schema.As("p"))
+	voSchema := schema.New(schema.FromModelRef(VehicleOwnership{}), schema.As("vo"))
 	testSelectBuilder(t, "INNER JOIN WITH NO COLUMN BIND VAR CONDITION",
 		query.Select(query.Column("*")).
-			From(person, option.As(`p`)).
-			Join(vehicleOwnership,
+			From(pSchema).
+			Join(voSchema,
 				query.And(
 					query.Equal(query.Column(`id`), query.On(`personId`)),
 					query.Equal(query.Column(`vehicleId`), query.BindVar()),
 				),
-				option.JoinMethod(op.InnerJoin), option.As(`vo`),
+				option.JoinMethod(op.InnerJoin),
 			).
-			Where(query.GreaterThanEqual(query.Column(`createdAt`, option.Schema(vehicleOwnership)))),
+			Where(query.GreaterThanEqual(query.Column(`createdAt`, option.Schema(voSchema)))),
 		"SELECT `p`.`createdAt` AS `p.createdAt`, `p`.`updatedAt` AS `p.updatedAt`, `p`.`id` AS `p.id`, `p`.`fullName` AS `p.fullName` FROM `Person` AS `p` INNER JOIN `VehicleOwnership` AS `vo` ON `p`.`id` = `vo`.`personId` WHERE `vo`.`createdAt` >= ?",
 	)
 }

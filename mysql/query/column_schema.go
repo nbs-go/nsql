@@ -16,9 +16,17 @@ type columnSchemaWriter struct {
 	format    op.ColumnFormat
 }
 
+func (w *columnSchemaWriter) GetSchemaRef() schema.Reference {
+	if w.tableAs != "" {
+		return schema.Reference(w.tableAs)
+	}
+	return schema.Reference(w.tableName)
+}
+
 func (w *columnSchemaWriter) SetSchema(s *schema.Schema) {
 	w.schema = s
 	w.tableName = s.TableName()
+	w.tableAs = s.As()
 }
 
 func (w *columnSchemaWriter) GetTableName() string {

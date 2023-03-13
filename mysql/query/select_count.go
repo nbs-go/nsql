@@ -32,6 +32,7 @@ func Count(column string, args ...interface{}) *selectCountWriter {
 		cw = &columnWriter{
 			name:      column,
 			tableName: s.TableName(),
+			tableAs:   s.As(),
 		}
 	} else {
 		// Set writer with FROM flag

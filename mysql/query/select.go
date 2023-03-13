@@ -11,9 +11,9 @@ import (
 
 func newSelectBuilder() *SelectBuilder {
 	return &SelectBuilder{
-		fields:   []nsql.SelectWriter{},
-		orderBys: []nsql.OrderByWriter{},
-		tables:   map[string]nsql.Table{},
+		fields:    []nsql.SelectWriter{},
+		orderBys:  []nsql.OrderByWriter{},
+		schemaRef: map[schema.Reference]*schema.Schema{},
 	}
 }
 
@@ -30,13 +30,13 @@ func From(s *schema.Schema, args ...interface{}) *SelectBuilder {
 }
 
 type SelectBuilder struct {
-	fields   []nsql.SelectWriter
-	from     nsql.FromWriter
-	where    nsql.WhereWriter
-	orderBys []nsql.OrderByWriter
-	limit    *int64
-	skip     *int64
-	tables   map[string]nsql.Table
+	fields    []nsql.SelectWriter
+	from      nsql.FromWriter
+	where     nsql.WhereWriter
+	orderBys  []nsql.OrderByWriter
+	limit     *int64
+	skip      *int64
+	schemaRef map[schema.Reference]*schema.Schema
 }
 
 func (b *SelectBuilder) Select(column1 nsql.SelectWriter, columnN ...nsql.SelectWriter) *SelectBuilder {
@@ -46,19 +46,11 @@ func (b *SelectBuilder) Select(column1 nsql.SelectWriter, columnN ...nsql.Select
 }
 
 func (b *SelectBuilder) From(s *schema.Schema, args ...interface{}) *SelectBuilder {
-	// Evaluate options
-	opts := option.EvaluateOptions(args)
-
-	// Get alias
-	as, _ := opts.GetString(option.AsKey)
-
 	// Create writer
-	w := newTableWriter(s.TableName(), as)
-
+	w := newTableWriter(s.TableName(), s.As())
 	// Add table and set FROM
-	b.addTable(s, as)
+	b.addTable(s)
 	b.from = w
-
 	return b
 }
 
@@ -66,7 +58,9 @@ func (b *SelectBuilder) Join(s *schema.Schema, onCondition nsql.WhereWriter, arg
 	// Evaluate options
 	opts := option.EvaluateOptions(args)
 	joinMethod := opts.GetJoinMethod()
-	as, _ := opts.GetString(option.AsKey)
+
+	// Add table
+	b.addTable(s)
 
 	// Resolve fromTableFlag reference
 	resolveFromTableFlag(onCondition, b.getFromSchema())
@@ -75,24 +69,18 @@ func (b *SelectBuilder) Join(s *schema.Schema, onCondition nsql.WhereWriter, arg
 	resolveJoinTableFlag(onCondition, s)
 
 	// Set table aliases
-	joinTable := nsql.Table{
-		Schema: s,
-		As:     as,
-	}
-	setJoinTableAs(onCondition, &joinTable, b.tables)
+	joinTable := s
+	setJoinTableAs(onCondition, joinTable, b.schemaRef)
 
 	// Create join writer
 	var w = joinWriter{
 		method:      joinMethod,
-		table:       &joinTable,
+		table:       joinTable,
 		onCondition: onCondition,
 	}
 
 	// Set join
 	b.from.Join(&w)
-
-	// Add table
-	b.addTable(s, as)
 
 	return b
 }
@@ -120,13 +108,14 @@ func (b *SelectBuilder) OrderBy(col string, args ...interface{}) *SelectBuilder 
 	// Get schema
 	s := opts.GetSchema()
 
-	var tableName string
+	var tableName, tableAs string
 	if s != nil {
 		// Skip if columnWriter is not available
 		if !s.IsColumnExist(col) {
 			return b
 		}
 		tableName = s.TableName()
+		tableAs = s.As()
 	} else {
 		tableName = fromTableFlag
 	}
@@ -138,6 +127,7 @@ func (b *SelectBuilder) OrderBy(col string, args ...interface{}) *SelectBuilder 
 		ColumnWriter: &columnWriter{
 			name:      col,
 			tableName: tableName,
+			tableAs:   tableAs,
 		},
 		direction: direction,
 	})
@@ -227,7 +217,8 @@ func (b *SelectBuilder) writeSelectQuery() string {
 		}
 
 		// Get existing table, if not then filter out writer
-		table, ok := b.tables[tableName]
+		sRef := f.GetSchemaRef()
+		table, ok := b.schemaRef[sRef]
 		if !ok {
 			continue
 		}
@@ -238,19 +229,19 @@ func (b *SelectBuilder) writeSelectQuery() string {
 			exp, eOk := f.(nsql.Expander)
 			if eOk {
 				// Expand with given schema and replace writer
-				f = exp.Expand(option.Schema(table.Schema))
+				f = exp.Expand(option.Schema(table))
 			}
 		}
 
 		// Set alias
-		f.SetTableAs(table.As)
+		f.SetTableAs(table.As())
 
 		// Push to select writer list
 		writers = append(writers, f)
 	}
 
 	// Set format if query has joins
-	if len(b.tables) > 1 {
+	if len(b.schemaRef) > 1 {
 		for _, w := range writers {
 			w.SetFormat(op.SelectJoinColumn)
 		}
@@ -282,16 +273,15 @@ func (b *SelectBuilder) writeOrderByQuery() string {
 	// Prepare order by writers
 	var writers []nsql.OrderByWriter
 	for _, f := range b.orderBys {
-		tableName := f.GetTableName()
-
 		// Get existing table, if not then filter out writer
-		table, ok := b.tables[tableName]
+		sRef := f.GetSchemaRef()
+		table, ok := b.schemaRef[sRef]
 		if !ok {
 			continue
 		}
 
 		// Set alias
-		f.SetTableAs(table.As)
+		f.SetTableAs(table.As())
 
 		writers = append(writers, f)
 	}
@@ -320,7 +310,7 @@ func (b *SelectBuilder) writeWhereQuery() string {
 	resolveFromTableFlag(b.where, from)
 
 	// Prepare query.SelectWriter
-	w := filterWhereWriters(b.where, b.tables)
+	w := filterWhereWriters(b.where, b.schemaRef)
 
 	if w == nil {
 		return ""
@@ -337,14 +327,10 @@ func (b *SelectBuilder) writeWhereQuery() string {
 
 // getFromSchema retrieve schema that is defined in FROM
 func (b *SelectBuilder) getFromSchema() *schema.Schema {
-	fromTable := b.from.GetTableName()
-	from := b.tables[fromTable]
-	return from.Schema
+	sRef := b.from.GetSchemaRef()
+	return b.schemaRef[sRef]
 }
 
-func (b *SelectBuilder) addTable(s *schema.Schema, as string) {
-	b.tables[s.TableName()] = nsql.Table{
-		Schema: s,
-		As:     as,
-	}
+func (b *SelectBuilder) addTable(s *schema.Schema) {
+	b.schemaRef[s.Ref()] = s
 }
