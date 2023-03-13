@@ -5,11 +5,14 @@ import (
 	"reflect"
 )
 
+type Reference string
+
 type Schema struct {
 	tableName     string
 	autoIncrement bool
 	primaryKey    string
 	columns       map[string]int
+	as            string
 }
 
 func (s *Schema) TableName() string {
@@ -78,6 +81,17 @@ func (s *Schema) Filter(column1 string, columnN ...string) []string {
 	return columns
 }
 
+func (s *Schema) As() string {
+	return s.as
+}
+
+func (s *Schema) Ref() Reference {
+	if s.as != "" {
+		return Reference(s.as)
+	}
+	return Reference(s.tableName)
+}
+
 func New(args ...OptionSetterFn) *Schema {
 	// Evaluate options
 	o := evaluateSchemaOptions(args)
@@ -113,6 +127,7 @@ func New(args ...OptionSetterFn) *Schema {
 
 	// Set other options
 	s.autoIncrement = o.autoIncrement
+	s.as = o.as
 
 	// Check if primary key is defined in columns
 	if _, ok := s.columns[o.primaryKey]; !ok {

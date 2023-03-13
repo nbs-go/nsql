@@ -6,6 +6,7 @@ type options struct {
 	primaryKey    string
 	autoIncrement bool
 	modelRef      interface{}
+	as            string
 }
 
 var defaultOptions = &options{
@@ -14,6 +15,7 @@ var defaultOptions = &options{
 	primaryKey:    "id",
 	autoIncrement: true,
 	modelRef:      nil,
+	as:            "",
 }
 
 type OptionSetterFn func(*options)
@@ -59,5 +61,12 @@ func TableName(s string) OptionSetterFn {
 func Columns(cols ...string) OptionSetterFn {
 	return func(o *options) {
 		o.columns = cols
+	}
+}
+
+// As set table alias to schema, will be use as reference if set
+func As(as string) OptionSetterFn {
+	return func(o *options) {
+		o.as = as
 	}
 }

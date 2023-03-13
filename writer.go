@@ -5,12 +5,17 @@ import (
 	"github.com/nbs-go/nsql/schema"
 )
 
-// SchemaSetter must be implemented by part of query that may not require defining schema,
+// SchemaReference must be implemented by part of query that may not require defining schema,
 // but will be set later. For example, Selected fields can only set without defining schema and will be referred to
 // schema that is defined in FROM
-type SchemaSetter interface {
+type SchemaReference interface {
 	TableGetter
+	SchemaRefGetter
 	SetSchema(s *schema.Schema)
+}
+
+type SchemaRefGetter interface {
+	GetSchemaRef() schema.Reference
 }
 
 type AliasSetter interface {
@@ -31,14 +36,14 @@ type SelectWriter interface {
 	SetFormat(format op.ColumnFormat)
 	IsAllColumns() bool
 	AliasSetter
-	SchemaSetter
+	SchemaReference
 }
 
 // FromWriter must be implemented by part of query that will generate query in FROM
 type FromWriter interface {
 	FromQuery() string
 	Join(j JoinWriter)
-	TableGetter
+	SchemaRefGetter
 }
 
 type WhereWriter interface {
@@ -48,7 +53,7 @@ type WhereWriter interface {
 type OrderByWriter interface {
 	OrderByQuery() string
 	AliasSetter
-	SchemaSetter
+	SchemaReference
 }
 
 type WhereCompareWriter interface {
@@ -56,7 +61,7 @@ type WhereCompareWriter interface {
 	SetVariable(v VariableWriter)
 	ColumnGetter
 	AliasSetter
-	SchemaSetter
+	SchemaReference
 }
 
 type WhereLogicWriter interface {
@@ -69,7 +74,7 @@ type ColumnWriter interface {
 	SetFormat(format op.ColumnFormat)
 	ColumnGetter
 	AliasSetter
-	SchemaSetter
+	SchemaReference
 }
 
 type Expander interface {
@@ -81,6 +86,7 @@ type JoinWriter interface {
 	GetTableName() string
 	GetIndex() int
 	SetIndex(s int)
+	SchemaRefGetter
 }
 
 type VariableWriter interface {

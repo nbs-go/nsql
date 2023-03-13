@@ -157,3 +157,36 @@ func TestFilterColumns(t *testing.T) {
 		s.Filter("id", "fullName", "age"),
 		[]string{"id", "fullName"})
 }
+
+func TestSchema_As(t *testing.T) {
+	s := New(FromModelRef(Person{}), As("p"))
+
+	// Assert As value
+	expected := "p"
+	actual := s.As()
+	if actual != expected {
+		t.Errorf("%s - FAILED\n  > got different value. As = %s", expected, actual)
+	}
+}
+
+func TestSchema_RefAs(t *testing.T) {
+	s := New(FromModelRef(Person{}), As("p"))
+
+	// Assert Ref
+	expectedRef := Reference("p")
+	actualRef := s.Ref()
+	if actualRef != expectedRef {
+		t.Errorf("%s - FAILED\n  > got different value. Ref = %s", expectedRef, actualRef)
+	}
+}
+
+func TestSchema_RefTableName(t *testing.T) {
+	s := New(FromModelRef(Person{}))
+
+	// Assert
+	expected := Reference("Person")
+	actual := s.Ref()
+	if actual != expected {
+		t.Errorf("%s - FAILED\n  > got different value. Ref = %s", expected, actual)
+	}
+}
