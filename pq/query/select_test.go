@@ -520,3 +520,41 @@ func TestPrintOptionAsDeprecationWarning(t *testing.T) {
 		t.Errorf("Expected = %s\n  > Unexpected actual value.\n  > Actual = %s", expected, actual)
 	}
 }
+
+func TestSameTableDifferentSchema(t *testing.T) {
+	type Location struct {
+		Id       int64  `db:"id"`
+		Name     string `db:"name"`
+		IsActive bool   `db:"isActive"`
+	}
+
+	type Route struct {
+		Id            int64 `db:"id"`
+		OriginId      int64 `db:"originId"`
+		DestinationId int64 `db:"destinationId"`
+	}
+
+	origin := schema.New(schema.FromModelRef(Location{}), schema.As("o"))
+	dest := schema.New(schema.FromModelRef(Location{}), schema.As("d"))
+	route := schema.New(schema.FromModelRef(Route{}), schema.As("r"))
+
+	// Assert
+	actual := query.Select(
+		query.Column("*"),
+		query.Column("*", option.Schema(origin)),
+		query.Column("*", option.Schema(dest)),
+	).
+		From(route).
+		Join(origin, query.Equal(query.Column("originId"), query.On("id"))).
+		Join(dest, query.Equal(query.Column("destinationId"), query.On("id"))).
+		Where(
+			query.Equal(query.Column("originId")),
+			query.Equal(query.Column("isActive", option.Schema(origin))),
+			query.Equal(query.Column("isActive", option.Schema(dest))),
+		).
+		Build()
+	expected := `SELECT "r"."id" AS "r.id", "r"."originId" AS "r.originId", "r"."destinationId" AS "r.destinationId", "o"."id" AS "o.id", "o"."name" AS "o.name", "o"."isActive" AS "o.isActive", "d"."id" AS "d.id", "d"."name" AS "d.name", "d"."isActive" AS "d.isActive" FROM "Route" AS "r" INNER JOIN "Location" AS "o" ON "r"."originId" = "o"."id" INNER JOIN "Location" AS "d" ON "r"."destinationId" = "d"."id" WHERE "r"."originId" = ? AND "o"."isActive" = ? AND "d"."isActive" = ?`
+	if actual != expected {
+		t.Errorf("Expected = %s\n  > got different generated query. Actual = %s", expected, actual)
+	}
+}
