@@ -165,7 +165,7 @@ func TestSelectWithWhereAnd(t *testing.T) {
 	pSchema := schema.New(schema.FromModelRef(Person{}), schema.As("p"))
 	testSelectBuilder(t, "SELECT WITH WHERE AND",
 		query.Select(query.Column("*")).
-			From(pSchema, option.As("p")).
+			From(pSchema).
 			Where(query.Equal(query.Column(pSchema.PrimaryKey())), query.Equal(query.Column("fullName"))),
 		`SELECT "p"."createdAt", "p"."updatedAt", "p"."id", "p"."fullName" FROM "Person" AS "p" WHERE "p"."id" = ? AND "p"."fullName" = ?`,
 	)
@@ -333,7 +333,7 @@ func TestSelectInnerJoinTableWithFilter(t *testing.T) {
 	voSchema := schema.New(schema.FromModelRef(VehicleOwnership{}), schema.As("vo"))
 	testSelectBuilder(t, "INNER JOIN WITH FILTER",
 		query.Select(query.Column("*")).
-			From(pSchema, option.As("p")).
+			From(pSchema).
 			Join(voSchema,
 				query.Equal(query.Column("id"), query.On("personId")),
 				option.JoinMethod(op.InnerJoin),
@@ -348,7 +348,7 @@ func TestSelectJoinTableWithAndCondition(t *testing.T) {
 	voSchema := schema.New(schema.FromModelRef(VehicleOwnership{}), schema.As("vo"))
 	testSelectBuilder(t, "INNER JOIN WITH AND CONDITION",
 		query.Select(query.Column("*"), query.Column("vehicleId", option.Schema(voSchema))).
-			From(pSchema, option.As("p")).
+			From(pSchema).
 			Join(voSchema,
 				query.And(
 					query.Equal(query.Column("id"), query.On("personId")),
@@ -473,7 +473,7 @@ func TestUndeclaredWhereColumn(t *testing.T) {
 
 func TestReusableWhereCondition(t *testing.T) {
 	pSchema := schema.New(schema.FromModelRef(Person{}), schema.As("p"))
-	b := query.Select(query.Column("*")).From(pSchema, option.As("p")).Where(query.GreaterThan(query.Column("createdAt")))
+	b := query.Select(query.Column("*")).From(pSchema).Where(query.GreaterThan(query.Column("createdAt")))
 	b.Build()
 
 	q := b.Select(query.Count("*")).Build()
@@ -505,13 +505,13 @@ func TestJoinBindVarCondition(t *testing.T) {
 	voSchema := schema.New(schema.FromModelRef(VehicleOwnership{}), schema.As("vo"))
 	testSelectBuilder(t, "INNER JOIN WITH BIND VAR CONDITION",
 		query.Select(query.Column("*")).
-			From(pSchema, option.As("p")).
+			From(pSchema).
 			Join(voSchema,
 				query.And(
 					query.Equal(query.Column("id"), query.On("personId")),
 					query.Equal(query.Column("vehicleId", option.Schema(voSchema)), query.BindVar()),
 				),
-				option.JoinMethod(op.InnerJoin), option.As("vo"),
+				option.JoinMethod(op.InnerJoin),
 			).
 			Where(query.GreaterThanEqual(query.Column("createdAt", option.Schema(voSchema)))),
 		`SELECT "p"."createdAt" AS "p.createdAt", "p"."updatedAt" AS "p.updatedAt", "p"."id" AS "p.id", "p"."fullName" AS "p.fullName" FROM "Person" AS "p" INNER JOIN "VehicleOwnership" AS "vo" ON "p"."id" = "vo"."personId" AND "vo"."vehicleId" = ? WHERE "vo"."createdAt" >= ?`,
@@ -529,7 +529,7 @@ func TestJoinInvalidBindVarCondition(t *testing.T) {
 					query.Equal(query.Column("id"), query.On("personId")),
 					query.Equal(query.Column("vehicleId"), query.BindVar()),
 				),
-				option.JoinMethod(op.InnerJoin), option.As("vo"),
+				option.JoinMethod(op.InnerJoin),
 			).
 			Where(query.GreaterThanEqual(query.Column("createdAt", option.Schema(voSchema)))),
 		`SELECT "p"."createdAt" AS "p.createdAt", "p"."updatedAt" AS "p.updatedAt", "p"."id" AS "p.id", "p"."fullName" AS "p.fullName" FROM "Person" AS "p" INNER JOIN "VehicleOwnership" AS "vo" ON "p"."id" = "vo"."personId" WHERE "vo"."createdAt" >= ?`,
@@ -582,7 +582,7 @@ func TestPrintOptionAsDeprecationWarning(t *testing.T) {
 	actual := query.Select(
 		query.Column("*"),
 	).
-		From(person, option.As("p")).
+		From(person).
 		Join(vehicleOwnership, query.Equal(query.Column("id"), query.On("personId")), option.As("vo")).
 		Build()
 	expected := `SELECT "Person"."createdAt" AS "Person.createdAt", "Person"."updatedAt" AS "Person.updatedAt", "Person"."id" AS "Person.id", "Person"."fullName" AS "Person.fullName" FROM "Person" INNER JOIN "VehicleOwnership" ON "Person"."id" = "VehicleOwnership"."personId"`
