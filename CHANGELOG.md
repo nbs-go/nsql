@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.13.0
+
+- fix(mysql): Log option.As() deprecation upon function called in MySQL Query Builder
+- fix(pg): Log option.As() deprecation upon function called in PostgreSQL Query Builder
+- BREAKING CHANGE(mysql): Implement SchemaReference in MySQL
+- BREAKING CHANGE(pg): Implement SchemaReference for PostgreSQL
+- BREAKING CHANGE: Replace Table with SchemaReference as table reference for building query
+
 ## v0.12.0
 
 - feat(pg): Add JSON Column query writer
