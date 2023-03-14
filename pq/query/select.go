@@ -6,6 +6,7 @@ import (
 	"github.com/nbs-go/nsql/op"
 	"github.com/nbs-go/nsql/option"
 	"github.com/nbs-go/nsql/schema"
+	"log"
 	"strings"
 )
 
@@ -46,6 +47,12 @@ func (b *SelectBuilder) Select(column1 nsql.SelectWriter, columnN ...nsql.Select
 }
 
 func (b *SelectBuilder) From(s *schema.Schema, args ...interface{}) *SelectBuilder {
+	// Resolve as option, and print warning
+	opts := option.EvaluateOptions(args)
+	as, _ := opts.GetString(option.AsKey)
+	if as != "" {
+		log.Printf("nsql: warning: option.As() in From() is deprecated. See Breaking Changes Note => https://github.com/nbs-go/nsql#breaking-changes. (Schema = %s)\n", s.TableName())
+	}
 	// Create writer
 	w := newTableWriter(s.TableName(), s.As())
 	// Add table and set FROM
@@ -58,6 +65,12 @@ func (b *SelectBuilder) Join(s *schema.Schema, onCondition nsql.WhereWriter, arg
 	// Evaluate options
 	opts := option.EvaluateOptions(args)
 	joinMethod := opts.GetJoinMethod()
+
+	// Resolve as option, and print warning
+	as, _ := opts.GetString(option.AsKey)
+	if as != "" {
+		log.Printf("nsql: warning: option.As() in Join() is deprecated. See Breaking Changes Note => https://github.com/nbs-go/nsql#breaking-changes. (Schema = %s)\n", s.TableName())
+	}
 
 	// Add table
 	b.addTable(s)

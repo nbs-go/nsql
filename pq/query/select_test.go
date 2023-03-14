@@ -228,7 +228,6 @@ func TestSelectJoin_ManyToManyWithTableAlias(t *testing.T) {
 		Join(voSchema, query.Equal(query.Column("id"), query.On("personId"))).
 		Join(vSchema, query.Equal(query.Column("vehicleId", option.Schema(voSchema)), query.On("id"))).
 		Build()
-	// SELECT "p"."createdAt" AS "p.createdAt", "p"."updatedAt" AS "p.updatedAt", "p"."id" AS "p.id", "p"."fullName" AS "p.fullName", "vo"."createdAt" AS "vo.createdAt", "vo"."updatedAt" AS "vo.updatedAt", "vo"."id" AS "vo.id", "vo"."personId" AS "vo.personId", "vo"."vehicleId" AS "vo.vehicleId", "v"."createdAt" AS "v.createdAt", "v"."updatedAt" AS "v.updatedAt", "v"."id" AS "v.id", "v"."personId" AS "v.personId", "v"."vehicleId" AS "v.vehicleId" FROM "Person" AS "p" INNER JOIN "VehicleOwnership" AS "vo" ON "p"."id" = "vo"."personId" INNER JOIN "VehicleOwnership" AS "v" ON "v"."vehicleId" = "v"."id"
 	expected := `SELECT "p"."createdAt" AS "p.createdAt", "p"."updatedAt" AS "p.updatedAt", "p"."id" AS "p.id", "p"."fullName" AS "p.fullName", "vo"."createdAt" AS "vo.createdAt", "vo"."updatedAt" AS "vo.updatedAt", "vo"."id" AS "vo.id", "vo"."personId" AS "vo.personId", "vo"."vehicleId" AS "vo.vehicleId", "v"."createdAt" AS "v.createdAt", "v"."updatedAt" AS "v.updatedAt", "v"."id" AS "v.id", "v"."name" AS "v.name", "v"."category" AS "v.category" FROM "Person" AS "p" INNER JOIN "VehicleOwnership" AS "vo" ON "p"."id" = "vo"."personId" INNER JOIN "Vehicle" AS "v" ON "vo"."vehicleId" = "v"."id"`
 	if actual != expected {
 		t.Errorf("%s - FAILED\n  > got different generated query. Query = %s", expected, actual)
@@ -505,5 +504,19 @@ func TestIsNotNull(t *testing.T) {
 	expected := `SELECT "Person"."id" FROM "Person" WHERE "Person"."fullName" IS NOT NULL`
 	if actual != expected {
 		t.Errorf("%s: FAILED\n  > got different generated query. Query = %s", expected, actual)
+	}
+}
+
+func TestPrintOptionAsDeprecationWarning(t *testing.T) {
+	// option.As in From query
+	actual := query.Select(
+		query.Column("*"),
+	).
+		From(person, option.As("p")).
+		Join(vehicleOwnership, query.Equal(query.Column("id"), query.On("personId")), option.As("vo")).
+		Build()
+	expected := `SELECT "Person"."createdAt" AS "Person.createdAt", "Person"."updatedAt" AS "Person.updatedAt", "Person"."id" AS "Person.id", "Person"."fullName" AS "Person.fullName" FROM "Person" INNER JOIN "VehicleOwnership" ON "Person"."id" = "VehicleOwnership"."personId"`
+	if actual != expected {
+		t.Errorf("Expected = %s\n  > Unexpected actual value.\n  > Actual = %s", expected, actual)
 	}
 }
