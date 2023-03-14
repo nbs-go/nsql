@@ -494,3 +494,17 @@ func TestIsNotNull(t *testing.T) {
 		t.Errorf("%s: FAILED\n  > got different generated query. Query = %s", expected, actual)
 	}
 }
+
+func TestPrintOptionAsDeprecationWarning(t *testing.T) {
+	// option.As in From query
+	actual := query.Select(
+		query.Column("*"),
+	).
+		From(person, option.As("p")).
+		Join(vehicleOwnership, query.Equal(query.Column("id"), query.On("personId")), option.As("vo")).
+		Build()
+	expected := "SELECT `Person`.`createdAt` AS `Person.createdAt`, `Person`.`updatedAt` AS `Person.updatedAt`, `Person`.`id` AS `Person.id`, `Person`.`fullName` AS `Person.fullName` FROM `Person` INNER JOIN `VehicleOwnership` ON `Person`.`id` = `VehicleOwnership`.`personId`"
+	if actual != expected {
+		t.Errorf("Expected = %s\n  > Unexpected actual value.\n  > Actual = %s", expected, actual)
+	}
+}
