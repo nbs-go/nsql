@@ -33,51 +33,75 @@ type VehicleOwnership struct {
 	VehicleId int64     `db:"vehicleId"`
 }
 
+type Location struct {
+	Id       int64  `db:"id"`
+	Name     string `db:"name"`
+	IsActive bool   `db:"isActive"`
+}
+
+type Route struct {
+	Id            int64 `db:"id"`
+	OriginId      int64 `db:"originId"`
+	DestinationId int64 `db:"destinationId"`
+}
+
 var person = schema.New(schema.FromModelRef(Person{}))
 var vehicleOwnership = schema.New(schema.FromModelRef(VehicleOwnership{}))
 var vehicle = schema.New(schema.FromModelRef(Vehicle{}))
 
-func TestSelectBasicQuery(t *testing.T) {
+func TestSelectAll(t *testing.T) {
 	// Select All
 	testSelectBuilder(t, "SELECT ALL",
 		query.Select(query.Column("*")).
 			From(person),
 		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person"`,
 	)
+}
 
+func TestSelectWithAlias(t *testing.T) {
 	personAs := schema.New(schema.FromModelRef(Person{}), schema.As("p"))
 	testSelectBuilder(t, "SELECT WITH ALIAS TABLE",
 		query.Select(query.Column("*")).
 			From(personAs),
 		`SELECT "p"."createdAt", "p"."updatedAt", "p"."id", "p"."fullName" FROM "Person" AS "p"`,
 	)
+}
 
+func TestSelectSpecifiedFields(t *testing.T) {
 	testSelectBuilder(t, "SELECT SPECIFIED FIELDS",
 		query.Select(query.Columns("id", "fullName", "gender", option.Schema(person))).
 			From(person),
 		`SELECT "Person"."id", "Person"."fullName" FROM "Person"`,
 	)
+}
 
+func TestSelectSpecifiedFieldsWithoutDeclareSchema(t *testing.T) {
 	testSelectBuilder(t, "SELECT SPECIFIED FIELDS (WITHOUT DECLARE SCHEMA)",
 		query.Select(query.Columns("id", "fullName", "gender")).
 			From(person),
 		`SELECT "Person"."id", "Person"."fullName" FROM "Person"`,
 	)
+}
 
+func TestSelectWithLimitedResult(t *testing.T) {
 	testSelectBuilder(t, "SELECT WITH LIMITED RESULT",
 		query.Select(query.Column("*", option.Schema(person))).
 			From(person).
 			Limit(10),
 		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person" LIMIT 10`,
 	)
+}
 
+func TestSelectWithSkippedResult(t *testing.T) {
 	testSelectBuilder(t, "SELECT WITH SKIPPED RESULT",
 		query.Select(query.Column("*")).
 			From(person).
 			Skip(1),
 		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person" OFFSET 1`,
 	)
+}
 
+func TestSelectWithLimitAndSkippedResult(t *testing.T) {
 	testSelectBuilder(t, "SELECT WITH LIMITED AND SKIPPED RESULT",
 		query.Select(query.Column("*")).
 			From(person).
@@ -85,14 +109,18 @@ func TestSelectBasicQuery(t *testing.T) {
 			Skip(10),
 		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person" LIMIT 10 OFFSET 10`,
 	)
+}
 
+func TestSelectWithOrderBy(t *testing.T) {
 	testSelectBuilder(t, "SELECT WITH ORDER BY",
 		query.Select(query.Column("*")).
 			From(person).
 			OrderBy("createdAt"),
 		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person" ORDER BY "Person"."createdAt" ASC`,
 	)
+}
 
+func TestSelectWithOrderByAndAliasTable(t *testing.T) {
 	pSchema := schema.New(schema.FromModelRef(Person{}), schema.As("p"))
 	testSelectBuilder(t, "SELECT WITH ORDER BY WITH ALIAS TABLE",
 		query.Select(query.Column("*")).
@@ -100,7 +128,10 @@ func TestSelectBasicQuery(t *testing.T) {
 			OrderBy("createdAt", option.SortDirection(op.Descending), option.Schema(pSchema)),
 		`SELECT "p"."createdAt", "p"."updatedAt", "p"."id", "p"."fullName" FROM "Person" AS "p" ORDER BY "p"."createdAt" DESC`,
 	)
+}
 
+func TestSelectWithOrderByLimitSkippedAndAliasTable(t *testing.T) {
+	pSchema := schema.New(schema.FromModelRef(Person{}), schema.As("p"))
 	testSelectBuilder(t, "SELECT WITH ORDER BY, LIMIT AND SKIP",
 		query.Select(query.Column("*")).
 			From(pSchema).
@@ -109,28 +140,39 @@ func TestSelectBasicQuery(t *testing.T) {
 			Skip(0),
 		`SELECT "p"."createdAt", "p"."updatedAt", "p"."id", "p"."fullName" FROM "Person" AS "p" ORDER BY "p"."createdAt" DESC LIMIT 10 OFFSET 0`,
 	)
+}
 
+func TestSelectWithOrderByUsingUndeclaredColumn(t *testing.T) {
+	pSchema := schema.New(schema.FromModelRef(Person{}), schema.As("p"))
 	testSelectBuilder(t, "SELECT WITH ORDER BY USING UNDECLARED COLUMN",
 		query.Select(query.Column("*")).
 			From(pSchema).
 			OrderBy("age", option.SortDirection(op.Descending)),
 		`SELECT "p"."createdAt", "p"."updatedAt", "p"."id", "p"."fullName" FROM "Person" AS "p"`,
 	)
+}
 
+func TestSelectWithWhereByPrimaryKey(t *testing.T) {
 	testSelectBuilder(t, "SELECT WITH WHERE BY PK",
 		query.Select(query.Column("*")).
 			From(person).
 			Where(query.Equal(query.Column(person.PrimaryKey()))),
 		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person" WHERE "Person"."id" = ?`,
 	)
+}
 
+func TestSelectWithWhereAnd(t *testing.T) {
+	pSchema := schema.New(schema.FromModelRef(Person{}), schema.As("p"))
 	testSelectBuilder(t, "SELECT WITH WHERE AND",
 		query.Select(query.Column("*")).
 			From(pSchema, option.As("p")).
 			Where(query.Equal(query.Column(pSchema.PrimaryKey())), query.Equal(query.Column("fullName"))),
 		`SELECT "p"."createdAt", "p"."updatedAt", "p"."id", "p"."fullName" FROM "Person" AS "p" WHERE "p"."id" = ? AND "p"."fullName" = ?`,
 	)
+}
 
+func TestSelectWithWhereAndOrNested(t *testing.T) {
+	pSchema := schema.New(schema.FromModelRef(Person{}), schema.As("p"))
 	testSelectBuilder(t, "SELECT WITH WHERE AND OR NESTED",
 		query.Select(query.Column("*")).
 			From(pSchema).
@@ -162,25 +204,31 @@ func TestSelectBasicQuery(t *testing.T) {
 	)
 }
 
-func TestSelectCount(t *testing.T) {
+func TestSelectCountAll(t *testing.T) {
 	testSelectBuilder(t, "COUNT ALL",
 		query.Select(query.Count("*")).
 			From(person),
 		`SELECT COUNT(*) FROM "Person"`,
 	)
+}
 
+func TestSelectCountById(t *testing.T) {
 	testSelectBuilder(t, "COUNT BY ID",
 		query.Select(query.Count("id", option.Schema(person))).
 			From(person),
 		`SELECT COUNT("Person"."id") FROM "Person"`,
 	)
+}
 
+func TestSelectCountByIdWithAliasField(t *testing.T) {
 	testSelectBuilder(t, "COUNT BY ID WITH ALIAS FIELD",
 		query.Select(query.Count("id", option.Schema(person), option.As("count"))).
 			From(person),
 		`SELECT COUNT("Person"."id") AS "count" FROM "Person"`,
 	)
+}
 
+func TestSelectCountByIdWithAliasTable(t *testing.T) {
 	pSchema := schema.New(schema.FromModelRef(Person{}), schema.As("p"))
 	testSelectBuilder(t, "COUNT BY ID WITH ALIAS TABLE",
 		query.Select(query.Count("id", option.Schema(pSchema))).
@@ -234,35 +282,43 @@ func TestSelectJoin_ManyToManyWithTableAlias(t *testing.T) {
 	}
 }
 
-func TestSelectJoin(t *testing.T) {
+func TestSelectInnerJoinTwoTable(t *testing.T) {
 	testSelectBuilder(t, "INNER JOIN 2 TABLE",
 		query.Select(query.Column("*"), query.Column("*", option.Schema(vehicleOwnership))).
 			From(person).
 			Join(vehicleOwnership, query.Equal(query.Column("id"), query.On("personId")), option.JoinMethod(op.InnerJoin)),
 		`SELECT "Person"."createdAt" AS "Person.createdAt", "Person"."updatedAt" AS "Person.updatedAt", "Person"."id" AS "Person.id", "Person"."fullName" AS "Person.fullName", "VehicleOwnership"."createdAt" AS "VehicleOwnership.createdAt", "VehicleOwnership"."updatedAt" AS "VehicleOwnership.updatedAt", "VehicleOwnership"."id" AS "VehicleOwnership.id", "VehicleOwnership"."personId" AS "VehicleOwnership.personId", "VehicleOwnership"."vehicleId" AS "VehicleOwnership.vehicleId" FROM "Person" INNER JOIN "VehicleOwnership" ON "Person"."id" = "VehicleOwnership"."personId"`,
 	)
+}
 
+func TestSelectLeftJoinTwoTable(t *testing.T) {
 	testSelectBuilder(t, "LEFT JOIN 2 TABLE",
 		query.Select(query.Column("*"), query.Column("*", option.Schema(vehicleOwnership))).
 			From(person).
 			Join(vehicleOwnership, query.Equal(query.Column("id"), query.On("personId")), option.JoinMethod(op.LeftJoin)),
 		`SELECT "Person"."createdAt" AS "Person.createdAt", "Person"."updatedAt" AS "Person.updatedAt", "Person"."id" AS "Person.id", "Person"."fullName" AS "Person.fullName", "VehicleOwnership"."createdAt" AS "VehicleOwnership.createdAt", "VehicleOwnership"."updatedAt" AS "VehicleOwnership.updatedAt", "VehicleOwnership"."id" AS "VehicleOwnership.id", "VehicleOwnership"."personId" AS "VehicleOwnership.personId", "VehicleOwnership"."vehicleId" AS "VehicleOwnership.vehicleId" FROM "Person" LEFT JOIN "VehicleOwnership" ON "Person"."id" = "VehicleOwnership"."personId"`,
 	)
+}
 
+func TestSelectRightJoinTwoTable(t *testing.T) {
 	testSelectBuilder(t, "RIGHT JOIN 2 TABLE",
 		query.Select(query.Column("*"), query.Column("*", option.Schema(vehicleOwnership))).
 			From(person).
 			Join(vehicleOwnership, query.Equal(query.Column("id"), query.On("personId")), option.JoinMethod(op.RightJoin)),
 		`SELECT "Person"."createdAt" AS "Person.createdAt", "Person"."updatedAt" AS "Person.updatedAt", "Person"."id" AS "Person.id", "Person"."fullName" AS "Person.fullName", "VehicleOwnership"."createdAt" AS "VehicleOwnership.createdAt", "VehicleOwnership"."updatedAt" AS "VehicleOwnership.updatedAt", "VehicleOwnership"."id" AS "VehicleOwnership.id", "VehicleOwnership"."personId" AS "VehicleOwnership.personId", "VehicleOwnership"."vehicleId" AS "VehicleOwnership.vehicleId" FROM "Person" RIGHT JOIN "VehicleOwnership" ON "Person"."id" = "VehicleOwnership"."personId"`,
 	)
+}
 
+func TestSelectFullJoinTwoTable(t *testing.T) {
 	testSelectBuilder(t, "FULL JOIN 2 TABLE",
 		query.Select(query.Column("*"), query.Column("*", option.Schema(vehicleOwnership))).
 			From(person).
 			Join(vehicleOwnership, query.Equal(query.Column("id"), query.On("personId")), option.JoinMethod(op.FullJoin)),
 		`SELECT "Person"."createdAt" AS "Person.createdAt", "Person"."updatedAt" AS "Person.updatedAt", "Person"."id" AS "Person.id", "Person"."fullName" AS "Person.fullName", "VehicleOwnership"."createdAt" AS "VehicleOwnership.createdAt", "VehicleOwnership"."updatedAt" AS "VehicleOwnership.updatedAt", "VehicleOwnership"."id" AS "VehicleOwnership.id", "VehicleOwnership"."personId" AS "VehicleOwnership.personId", "VehicleOwnership"."vehicleId" AS "VehicleOwnership.vehicleId" FROM "Person" FULL OUTER JOIN "VehicleOwnership" ON "Person"."id" = "VehicleOwnership"."personId"`,
 	)
+}
 
+func TestSelectManyToManyJoinTable(t *testing.T) {
 	testSelectBuilder(t, "MANY TO MANY",
 		query.Select(query.Column("*"), query.Column("*", option.Schema(vehicleOwnership)), query.Column("*", option.Schema(vehicle))).
 			From(person).
@@ -270,7 +326,9 @@ func TestSelectJoin(t *testing.T) {
 			Join(vehicle, query.Equal(query.Column("vehicleId", option.Schema(vehicleOwnership)), query.On("id"))),
 		`SELECT "Person"."createdAt" AS "Person.createdAt", "Person"."updatedAt" AS "Person.updatedAt", "Person"."id" AS "Person.id", "Person"."fullName" AS "Person.fullName", "VehicleOwnership"."createdAt" AS "VehicleOwnership.createdAt", "VehicleOwnership"."updatedAt" AS "VehicleOwnership.updatedAt", "VehicleOwnership"."id" AS "VehicleOwnership.id", "VehicleOwnership"."personId" AS "VehicleOwnership.personId", "VehicleOwnership"."vehicleId" AS "VehicleOwnership.vehicleId", "Vehicle"."createdAt" AS "Vehicle.createdAt", "Vehicle"."updatedAt" AS "Vehicle.updatedAt", "Vehicle"."id" AS "Vehicle.id", "Vehicle"."name" AS "Vehicle.name", "Vehicle"."category" AS "Vehicle.category" FROM "Person" INNER JOIN "VehicleOwnership" ON "Person"."id" = "VehicleOwnership"."personId" INNER JOIN "Vehicle" ON "VehicleOwnership"."vehicleId" = "Vehicle"."id"`,
 	)
+}
 
+func TestSelectInnerJoinTableWithFilter(t *testing.T) {
 	pSchema := schema.New(schema.FromModelRef(Person{}), schema.As("p"))
 	voSchema := schema.New(schema.FromModelRef(VehicleOwnership{}), schema.As("vo"))
 	testSelectBuilder(t, "INNER JOIN WITH FILTER",
@@ -283,7 +341,11 @@ func TestSelectJoin(t *testing.T) {
 			Where(query.GreaterThanEqual(query.Column("createdAt", option.Schema(voSchema)))),
 		`SELECT "p"."createdAt" AS "p.createdAt", "p"."updatedAt" AS "p.updatedAt", "p"."id" AS "p.id", "p"."fullName" AS "p.fullName" FROM "Person" AS "p" INNER JOIN "VehicleOwnership" AS "vo" ON "p"."id" = "vo"."personId" WHERE "vo"."createdAt" >= ?`,
 	)
+}
 
+func TestSelectJoinTableWithAndCondition(t *testing.T) {
+	pSchema := schema.New(schema.FromModelRef(Person{}), schema.As("p"))
+	voSchema := schema.New(schema.FromModelRef(VehicleOwnership{}), schema.As("vo"))
 	testSelectBuilder(t, "INNER JOIN WITH AND CONDITION",
 		query.Select(query.Column("*"), query.Column("vehicleId", option.Schema(voSchema))).
 			From(pSchema, option.As("p")).
@@ -304,7 +366,9 @@ func TestSelectEmptyWhere(t *testing.T) {
 			From(person).
 			Where(query.And()),
 		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person"`)
+}
 
+func TestSelectSingleWhere(t *testing.T) {
 	testSelectBuilder(t, "Single Where",
 		query.Select(query.Column("*")).
 			From(person).
@@ -312,7 +376,9 @@ func TestSelectEmptyWhere(t *testing.T) {
 				query.Equal(query.Column("id")),
 			)),
 		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person" WHERE "Person"."id" = ?`)
+}
 
+func TestSelectEmptyWhereNested(t *testing.T) {
 	testSelectBuilder(t, "Empty Where Nested",
 		query.Select(query.Column("*")).
 			From(person).
@@ -346,21 +412,25 @@ func BenchmarkJoinManyToMany(b *testing.B) {
 	}
 }
 
-func TestFromConstructor(t *testing.T) {
+func TestFromConstructorSelectAll(t *testing.T) {
 	b := query.From(person)
-
 	test_utils.CompareString(t, "SELECT ALL",
 		b.Select(query.Column("*")).Build(),
 		`SELECT "Person"."createdAt", "Person"."updatedAt", "Person"."id", "Person"."fullName" FROM "Person"`,
 	)
+}
 
+func TestFromConstructorReplaceSelectCountAll(t *testing.T) {
+	b := query.From(person)
 	test_utils.CompareString(t, "REPLACE SELECT COUNT ALL",
 		b.Select(query.Count("*")).Build(),
 		`SELECT COUNT(*) FROM "Person"`,
 	)
+}
 
+func TestFromConstructorSelectAllWithAlias(t *testing.T) {
 	pSchema := schema.New(schema.FromModelRef(Person{}), schema.As("p"))
-	b = query.From(pSchema)
+	b := query.From(pSchema)
 	test_utils.CompareString(t, "SELECT ALL WITH ALIAS",
 		b.Select(query.Column("*")).Build(),
 		`SELECT "p"."createdAt", "p"."updatedAt", "p"."id", "p"."fullName" FROM "Person" AS "p"`,
@@ -522,18 +592,6 @@ func TestPrintOptionAsDeprecationWarning(t *testing.T) {
 }
 
 func TestSameTableDifferentSchema(t *testing.T) {
-	type Location struct {
-		Id       int64  `db:"id"`
-		Name     string `db:"name"`
-		IsActive bool   `db:"isActive"`
-	}
-
-	type Route struct {
-		Id            int64 `db:"id"`
-		OriginId      int64 `db:"originId"`
-		DestinationId int64 `db:"destinationId"`
-	}
-
 	origin := schema.New(schema.FromModelRef(Location{}), schema.As("o"))
 	dest := schema.New(schema.FromModelRef(Location{}), schema.As("d"))
 	route := schema.New(schema.FromModelRef(Route{}), schema.As("r"))
