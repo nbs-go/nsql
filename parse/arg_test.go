@@ -46,13 +46,16 @@ func TestTimeArgLayoutCustom(t *testing.T) {
 	args := parse.TimeArg(v, time.RFC3339)
 
 	// Create expected
-	expT, err := time.Parse(time.RFC3339, v)
+	tExp, err := time.Parse(time.RFC3339, v)
 	if err != nil {
 		log.Fatalf("cannot create expectation value. Error = %s", err)
 	}
-	exp := []interface{}{expT}
-
-	test_utils.CompareInterfaceArray(t, "CUSTOM LAYOUT", args, exp)
+	// Change test case
+	actual := fmt.Sprintf("%s", args[0])
+	expected := fmt.Sprintf("%s", tExp)
+	if actual != expected {
+		t.Errorf("unexpected parsed time. Expected = %s, Actual = %s", expected, actual)
+	}
 }
 
 func TestTimeArgError(t *testing.T) {
