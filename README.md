@@ -2,6 +2,7 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/nbs-go/nsql)](https://goreportcard.com/report/github.com/nbs-go/nsql)
 [![GitHub license](https://img.shields.io/github/license/nbs-go/nsql)](https://github.com/nbs-go/nsql/blob/master/LICENSE)
+[![codecov](https://codecov.io/gh/nbs-go/nsql/branch/master/graph/badge.svg?token=4ZS3L755H7)](https://codecov.io/gh/nbs-go/nsql)
 
 SQL Utility for Golang. Compatible with [`jmoiron/sqlx`](https://github.com/jmoiron/sqlx). Features:
 - Query Builder (PostgreSQL / MySQL)
