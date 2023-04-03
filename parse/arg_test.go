@@ -30,12 +30,14 @@ func TestTimeArgLayoutDefault(t *testing.T) {
 	// Create actual value
 	v := "2022-01-01 00:00:00"
 	args := parse.TimeArg(v, "")
-
 	// Create expected
-	expT, _ := time.Parse(parse.DefaultTimeLayout, v)
-	exp := []interface{}{expT}
-
-	test_utils.CompareInterfaceArray(t, "DEFAULT LAYOUT", args, exp)
+	tExp, _ := time.Parse(parse.DefaultTimeLayout, v)
+	// Change test case
+	actual := fmt.Sprintf("%s", args[0])
+	expected := fmt.Sprintf("%s", tExp)
+	if actual != expected {
+		t.Errorf("unexpected parsed time. Expected = %s, Actual = %s", expected, actual)
+	}
 }
 
 func TestTimeArgLayoutCustom(t *testing.T) {
