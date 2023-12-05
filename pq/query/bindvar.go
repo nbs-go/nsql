@@ -3,6 +3,7 @@ package query
 import (
 	"fmt"
 	"github.com/nbs-go/nsql/option"
+	"strings"
 )
 
 type bindVar struct{}
@@ -63,4 +64,18 @@ type intVar struct {
 
 func (v *intVar) VariableQuery() string {
 	return fmt.Sprintf("%d", v.value)
+}
+
+func BoolVar(b bool) option.SetOptionFn {
+	return func(o *option.Options) {
+		o.KV[option.VariableKey] = &boolVar{value: b}
+	}
+}
+
+type boolVar struct {
+	value bool
+}
+
+func (v *boolVar) VariableQuery() string {
+	return strings.ToUpper(fmt.Sprintf("%t", v.value))
 }

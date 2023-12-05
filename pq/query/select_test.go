@@ -558,3 +558,37 @@ func TestSameTableDifferentSchema(t *testing.T) {
 		t.Errorf("Expected = %s\n  > got different generated query. Actual = %s", expected, actual)
 	}
 }
+
+func TestBoolVar(t *testing.T) {
+	type User struct {
+		Id       int64  `db:"id"`
+		Name     string `db:"name"`
+		IsActive bool   `db:"isActive"`
+	}
+
+	s := schema.New(schema.FromModelRef(User{}))
+
+	// Assert True
+	actual := query.Select(query.Column("*")).
+		From(s).
+		Where(
+			query.Equal(query.Column("isActive"), query.BoolVar(true)),
+		).
+		Build()
+	expected := `SELECT "User"."id", "User"."name", "User"."isActive" FROM "User" WHERE "User"."isActive" = TRUE`
+	if actual != expected {
+		t.Errorf("Expected = %s\n  > got different generated query. Actual = %s", expected, actual)
+	}
+
+	// Assert False
+	actual = query.Select(query.Column("*")).
+		From(s).
+		Where(
+			query.Equal(query.Column("isActive"), query.BoolVar(false)),
+		).
+		Build()
+	expected = `SELECT "User"."id", "User"."name", "User"."isActive" FROM "User" WHERE "User"."isActive" = FALSE`
+	if actual != expected {
+		t.Errorf("Expected = %s\n  > got different generated query. Actual = %s", expected, actual)
+	}
+}
