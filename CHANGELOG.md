@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.14.0
+
+- feat(pg): Add BoolVar for writing boolean value in WHERE clause
+
 ## v0.13.0
 
 - fix(mysql): Log option.As() deprecation upon function called in MySQL Query Builder
