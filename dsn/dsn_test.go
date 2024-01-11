@@ -30,6 +30,7 @@ func TestFormat_Postgres_Default(t *testing.T) {
 	actual, err := dsn.Format(dsn.DriverPostgres, "user", "pass", "localhost", 5432, "test_nsql")
 	if err != nil {
 		t.Errorf("Unable to generate DSN for driver. Error=%s", err)
+		return
 	}
 	expected := "postgres://user:pass@localhost:5432/test_nsql?parseTime=true&sslmode=false"
 	if actual != expected {
@@ -41,6 +42,7 @@ func TestFormat_Postgres_WithOptions(t *testing.T) {
 	actual, err := dsn.Format(dsn.DriverPostgres, "user", "pass", "localhost", 5432, "test_nsql", dsn.ParseTime(false), dsn.SearchPath("app"))
 	if err != nil {
 		t.Errorf("Unable to generate DSN for driver. Error=%s", err)
+		return
 	}
 	expected := "postgres://user:pass@localhost:5432/test_nsql?parseTime=false&search_path=app&sslmode=false"
 	if actual != expected {
@@ -52,6 +54,7 @@ func TestFormat_Mysql_Default(t *testing.T) {
 	actual, err := dsn.Format(dsn.DriverMysql, "user", "pass", "localhost", 3306, "test_nsql")
 	if err != nil {
 		t.Errorf("Unable to generate DSN for driver. Error=%s", err)
+		return
 	}
 	expected := "mysql://user:pass@localhost:3306/test_nsql?parseTime=true&sslmode=false"
 	if actual != expected {
@@ -75,6 +78,7 @@ func TestFormat_UnsupportedDriver_Error(t *testing.T) {
 	_, err := dsn.Format("mssql", "user", "pass", "localhost", 1433, "test_nsql")
 	if err == nil {
 		t.Errorf("Unexpected result. Function must return error")
+		return
 	}
 	actual := err.Error()
 	expected := "nsql: Unsupported driver mssql"
