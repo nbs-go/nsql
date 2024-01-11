@@ -59,6 +59,18 @@ func TestFormat_Mysql_Default(t *testing.T) {
 	}
 }
 
+func TestFormat_UnescapedSpecialCharPassword(t *testing.T) {
+	actual, err := dsn.Format(dsn.DriverPostgres, "user", "pass!@#$%^&*()", "localhost", 5432, "test_nsql")
+	if err != nil {
+		t.Errorf("Unable to generate DSN for driver. Error=%s", err)
+		return
+	}
+	expected := "postgres://user:pass%21%40%23$%25%5E&%2A%28%29@localhost:5432/test_nsql?parseTime=true&sslmode=false"
+	if actual != expected {
+		t.Errorf("Expected = %s\n  > got different value. Actual = %s", expected, actual)
+	}
+}
+
 func TestFormat_UnsupportedDriver_Error(t *testing.T) {
 	_, err := dsn.Format("mssql", "user", "pass", "localhost", 1433, "test_nsql")
 	if err == nil {

@@ -34,6 +34,8 @@ func Format(driver, username, password, host string, port int, dbName string, ar
 		return "", fmt.Errorf("nsql: Unsupported driver %s", driver)
 	}
 
+	password = url.QueryEscape(password)
+
 	u, err := url.Parse(fmt.Sprintf("%s://%s:%s@%s:%d/%s", scheme, username, password, host, port, dbName))
 	if err != nil {
 		return "", err
