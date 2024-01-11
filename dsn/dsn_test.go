@@ -86,3 +86,16 @@ func TestFormat_UnsupportedDriver_Error(t *testing.T) {
 		t.Errorf("Expected = %s\n  > got different value. Actual = %s", expected, actual)
 	}
 }
+
+func TestFormat_UnescapedSpecialCharHostname_Error(t *testing.T) {
+	_, err := dsn.Format(dsn.DriverPostgres, "user", "pass", "local%host", 5432, "test_nsql")
+	if err == nil {
+		t.Errorf("Unexpected result. Function must return error")
+		return
+	}
+	actual := err.Error()
+	expected := `parse "postgres://user:pass@local%host:5432/test_nsql": invalid URL escape "%ho"`
+	if actual != expected {
+		t.Errorf("Expected = %s\n  > got different value. Actual = %s", expected, actual)
+	}
+}
