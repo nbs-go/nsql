@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.15.0
+
+- feat(json): Add helper function to scan JSON column from RDBMS
+- feat(dsn): URL Encode password when generating DSN
+- feat(dsn): Add PostgreSQL and MySQL dsn formatter
+
 ## v0.14.0
 
 - feat(pg): Add BoolVar for writing boolean value in WHERE clause
