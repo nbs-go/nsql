@@ -67,6 +67,7 @@ func CompareInt(t *testing.T, expectation string, actual, expected int) {
 
 func RecoverPanic(t *testing.T, expectation string, errStr string) func() {
 	return func() {
+		t.Helper()
 		r := recover()
 		if r == nil {
 			t.Errorf("%s: FAILED\n  > code did not panic", expectation)
