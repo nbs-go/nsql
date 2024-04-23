@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.16.0
+
+- feat(pg/types): Add Postgis Point and NullPoint data type
+
 ## v0.15.0
 
 - feat(json): Add helper function to scan JSON column from RDBMS
