@@ -148,6 +148,21 @@ func (b *SelectBuilder) OrderBy(col string, args ...interface{}) *SelectBuilder 
 	return b
 }
 
+func (b *SelectBuilder) OrderByColumn(col nsql.ColumnWriter, args ...interface{}) *SelectBuilder {
+	// Evaluate options
+	opts := option.EvaluateOptions(args)
+
+	// Get direction
+	direction := opts.GetSortDirection()
+
+	b.orderBys = append(b.orderBys, &orderByWriter{
+		ColumnWriter: col,
+		direction:    direction,
+	})
+
+	return b
+}
+
 func (b *SelectBuilder) ResetOrderBy() *SelectBuilder {
 	b.orderBys = []nsql.OrderByWriter{}
 	return b
