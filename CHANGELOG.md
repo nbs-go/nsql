@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.17.0
+
+- feat(pg): Add Lower to generate LOWER() function query
+- feat(pg): Add OrderByColumn to use ColumnWriter as input argument
+
 ## v0.16.0
 
 - feat(pg/types): Add Postgis Point and NullPoint data type
