@@ -2,6 +2,7 @@ package pgTypes
 
 import (
 	"database/sql/driver"
+	"encoding/json"
 )
 
 // NullPoint represents an x,y coordinate in EPSG:4326 for PostGIS that supports null value
@@ -61,4 +62,28 @@ func (p NullPoint) Lng() float64 {
 
 func (p NullPoint) Point() Point {
 	return p.point
+}
+
+func (p NullPoint) MarshalJSON() ([]byte, error) {
+	if !p.Valid {
+		return nil, nil
+	}
+
+	return json.Marshal(p.point)
+}
+
+func (p *NullPoint) UnmarshalJSON(bytes []byte) error {
+	if string(bytes) == "null" {
+		return nil
+	}
+
+	var po Point
+	err := json.Unmarshal(bytes, &po)
+	if err != nil {
+		return nil
+	}
+
+	p.Valid = true
+	p.point = po
+	return nil
 }

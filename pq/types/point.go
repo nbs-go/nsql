@@ -5,6 +5,7 @@ import (
 	"database/sql/driver"
 	"encoding/binary"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 )
@@ -76,4 +77,27 @@ func (p Point) Lat() float64 {
 
 func (p Point) Lng() float64 {
 	return p[0]
+}
+
+func (p Point) MarshalJSON() ([]byte, error) {
+	return json.Marshal(pointJson{
+		Lat: p.Lat(),
+		Lng: p.Lng(),
+	})
+}
+
+func (p *Point) UnmarshalJSON(bytes []byte) error {
+	var m pointJson
+	err := json.Unmarshal(bytes, &m)
+	if err != nil {
+		return err
+	}
+	p[0] = m.Lng
+	p[1] = m.Lat
+	return nil
+}
+
+type pointJson struct {
+	Lat float64 `json:"lat"`
+	Lng float64 `json:"lng"`
 }
