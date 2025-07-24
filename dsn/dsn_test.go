@@ -32,7 +32,7 @@ func TestFormat_Postgres_Default(t *testing.T) {
 		t.Errorf("Unable to generate DSN for driver. Error=%s", err)
 		return
 	}
-	expected := "postgres://user:pass@localhost:5432/test_nsql?parseTime=true&sslmode=false"
+	expected := "postgres://user:pass@localhost:5432/test_nsql?sslmode=disable"
 	if actual != expected {
 		t.Errorf("Expected = %s\n  > got different value. Actual = %s", expected, actual)
 	}
@@ -44,7 +44,7 @@ func TestFormat_Postgres_WithOptions(t *testing.T) {
 		t.Errorf("Unable to generate DSN for driver. Error=%s", err)
 		return
 	}
-	expected := "postgres://user:pass@localhost:5432/test_nsql?parseTime=false&search_path=app&sslmode=false"
+	expected := "postgres://user:pass@localhost:5432/test_nsql?search_path=app&sslmode=disable"
 	if actual != expected {
 		t.Errorf("Expected = %s\n  > got different value. Actual = %s", expected, actual)
 	}
@@ -68,7 +68,7 @@ func TestFormat_UnescapedSpecialCharPassword(t *testing.T) {
 		t.Errorf("Unable to generate DSN for driver. Error=%s", err)
 		return
 	}
-	expected := "postgres://user:pass%21%40%23$%25%5E&%2A%28%29@localhost:5432/test_nsql?parseTime=true&sslmode=false"
+	expected := "postgres://user:pass%21%40%23$%25%5E&%2A%28%29@localhost:5432/test_nsql?sslmode=disable"
 	if actual != expected {
 		t.Errorf("Expected = %s\n  > got different value. Actual = %s", expected, actual)
 	}
