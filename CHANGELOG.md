@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.18.1
+
+- fix(dsn): Remove parseTime parameter for postgres
+- fix(dsn): Fix sslmode disable value in postgres
+
+## v0.18.0
+
+feat(pg): Implement Marshaler and Unmarshaler interface in Point and NullPoint
+
 ## v0.17.0
 
 - feat(pg): Add Lower to generate LOWER() function query
