@@ -17,7 +17,6 @@ func Format(driver, username, password, host string, port int, dbName string, ar
 	o := evaluateOptions(args)
 
 	q := make(url.Values)
-	q.Set("parseTime", fmt.Sprintf("%t", o.ParseTime))
 	var scheme string
 
 	switch driver {
@@ -33,6 +32,7 @@ func Format(driver, username, password, host string, port int, dbName string, ar
 	case DriverMysql:
 		scheme = "mysql"
 		q.Set("sslmode", fmt.Sprintf("%t", o.SslMode))
+		q.Set("parseTime", fmt.Sprintf("%t", o.ParseTime))
 	default:
 		return "", fmt.Errorf("nsql: Unsupported driver %s", driver)
 	}
